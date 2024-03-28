@@ -3,10 +3,21 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Dimensions, Image } from 'react-native';
 
 export default function App() {
-  const NoteBook1 = {
+  const Mocca = {
     uri: 'https://www.everyday-delicious.com/wp-content/uploads/2021/05/caffee-mocha-kawa-mokka-everyday-delicious-1-1197x1800.jpg',
-    width: 250,
-    height: 175,
+  };
+
+  const Americano = {
+    uri: 'https://www.acouplecooks.com/wp-content/uploads/2022/01/Iced-Americano-008s.jpg',
+  };
+  const Espresso = {
+    uri: 'https://www.thespruceeats.com/thmb/HJrjMfXdLGHbgMhnM0fMkDx9XPQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/what-is-espresso-765702-hero-03_cropped-ffbc0c7cf45a46ff846843040c8f370c.jpg',
+  };
+  const Cappuccino = {
+    uri: 'https://coffeeaffection.com/wp-content/uploads/2021/02/does-a-cappuccino-have-caffeine.jpg',
+  };
+  const Latte = {
+    uri: 'https://coffeeaffection.com/wp-content/uploads/2021/05/Spanish-latte-milk-and-espresso.jpg',
   };
 
   return (
@@ -14,14 +25,31 @@ export default function App() {
       <StatusBar style="auto" />
       <Text style={styles.menuTitle}>เมนู</Text>
       <View style={styles.menuItemContainer}>
+
         <View style={styles.menuItem}>
-          <Image source={NoteBook1} style={styles.menuItemIcon} />
+          <Image source={Mocca} style={styles.menuItemIcon} />
           <Text style={styles.menuItemText}>Mocca</Text>
         </View>
-        <Text style={styles.menuItemText}>Amricano</Text>
-        <Text style={styles.menuItemText}>Espresspso</Text>
-        <Text style={styles.menuItemText}>Capuchino</Text>
+
+        <View style={styles.menuItem}>
+          <Image source={Americano} style={styles.menuItemIcon} />
+          <Text style={styles.menuItemText}>Americano</Text>
+        </View>
+
+        <View style={styles.menuItem}>
+        <Image source={Espresso} style={styles.menuItemIcon} />
+        <Text style={styles.menuItemText}>Espresso</Text>
+        </View>
+
+        <View style={styles.menuItem}>
+        <Image source={Cappuccino} style={styles.menuItemIcon} />
+        <Text style={styles.menuItemText}>Cappuccino</Text>
+        </View>
+      
+        <View style={styles.menuItem}>
+        <Image source={Latte} style={styles.menuItemIcon} />
         <Text style={styles.menuItemText}>Latte</Text>
+        </View>
       </View>
     </View>
   );
@@ -54,9 +82,9 @@ const styles = StyleSheet.create({
   },
   menuItemIcon: {
     marginRight: 10, // เพิ่มระยะห่างระหว่างรูปและข้อความ
-    width: 50, // กำหนดความกว้างของรูปภาพ
-    height: 50, // กำหนดความสูงของรูปภาพ
-    borderRadius: 5, // กำหนดขอบเขตโค้งของรูปภาพ
+    width: 70, // กำหนดความกว้างของรูปภาพ
+    height: 90, // กำหนดความสูงของรูปภาพ
+    borderRadius: 6, // กำหนดขอบเขตโค้งของรูปภาพ
   },
   menuItemText: {
     fontFamily: 'Inria Serif',
