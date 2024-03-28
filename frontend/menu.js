@@ -25,30 +25,25 @@ export default function App() {
       <StatusBar style="auto" />
       <Text style={styles.menuTitle}>เมนู</Text>
       <View style={styles.menuItemContainer}>
-
         <View style={styles.menuItem}>
           <Image source={Mocca} style={styles.menuItemIcon} />
           <Text style={styles.menuItemText}>Mocca</Text>
         </View>
-
         <View style={styles.menuItem}>
           <Image source={Americano} style={styles.menuItemIcon} />
           <Text style={styles.menuItemText}>Americano</Text>
         </View>
-
         <View style={styles.menuItem}>
-        <Image source={Espresso} style={styles.menuItemIcon} />
-        <Text style={styles.menuItemText}>Espresso</Text>
+          <Image source={Espresso} style={styles.menuItemIcon} />
+          <Text style={styles.menuItemText}>Espresso</Text>
         </View>
-
         <View style={styles.menuItem}>
-        <Image source={Cappuccino} style={styles.menuItemIcon} />
-        <Text style={styles.menuItemText}>Cappuccino</Text>
+          <Image source={Cappuccino} style={styles.menuItemIcon} />
+          <Text style={styles.menuItemText}>Cappuccino</Text>
         </View>
-      
         <View style={styles.menuItem}>
-        <Image source={Latte} style={styles.menuItemIcon} />
-        <Text style={styles.menuItemText}>Latte</Text>
+          <Image source={Latte} style={styles.menuItemIcon} />
+          <Text style={styles.menuItemText}>Latte</Text>
         </View>
       </View>
     </View>
@@ -71,20 +66,20 @@ const styles = StyleSheet.create({
   },
   menuItemContainer: {
     width: Dimensions.get('window').width,
-    alignItems: 'center',
+    alignItems: 'flex-start', // จัดเรียงเนื้อหาให้ชิดด้านซ้าย
     padding: 20,
     borderRadius: 10,
   },
   menuItem: {
     flexDirection: 'row', // เพิ่มเพื่อให้รูปและข้อความเรียงในแนวนอน
-    marginBottom: 60,
+    marginBottom: 20,
     alignItems: 'center', // จัดให้รูปและข้อความอยู่กึ่งกลางตามแนวตั้ง
   },
   menuItemIcon: {
-    marginRight: 10, // เพิ่มระยะห่างระหว่างรูปและข้อความ
-    width: 70, // กำหนดความกว้างของรูปภาพ
-    height: 90, // กำหนดความสูงของรูปภาพ
-    borderRadius: 6, // กำหนดขอบเขตโค้งของรูปภาพ
+    marginRight: 10,
+    width: 70,
+    height: 90,
+    borderRadius: 6,
   },
   menuItemText: {
     fontFamily: 'Inria Serif',
