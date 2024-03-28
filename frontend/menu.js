@@ -6,13 +6,13 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-      <Text style={styles.menuTitle}>เมนูกาแฟ</Text>
+      <Text style={styles.menuTitle}>เมนู</Text>
       <View style={styles.menuItemContainer}>
-        <Text style={styles.menuItem}>กาแฟเย็น</Text>
-        <Text style={styles.menuItem}>กาแฟดำ</Text>
-        <Text style={styles.menuItem}>กาแฟหวาน</Text>
-        <Text style={styles.menuItem}>กาแฟไขมัน</Text>
-        <Text style={styles.menuItem}>กาแฟออร์แกนิค</Text>
+        <Text style={styles.menuItem}>Mocca</Text>
+        <Text style={styles.menuItem}>Amricano</Text>
+        <Text style={styles.menuItem}>Espresspso</Text>
+        <Text style={styles.menuItem}>Capuchino</Text>
+        <Text style={styles.menuItem}>Latte</Text>
       </View>
     </View>
   );
@@ -21,27 +21,27 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4B3621', // สีพื้นหลังที่เหมาะสำหรับร้านกาแฟ
+    backgroundColor: '#EEE8DC', // สีพื้นหลังที่เหมาะสำหรับร้านกาแฟ
     alignItems: 'center',
-    justifyContent: 'flex-start', // จัดเรียงเนื้อหาด้านบนสุดของ container
-    paddingTop: 50, // เพิ่มระยะห่างด้านบนของ container
+    justifyContent: 'center', // จัดเรียงเนื้อหาด้านบนสุดของ container
+    paddingTop: 30, // เพิ่มระยะห่างด้านบนของ container
   },
   menuTitle: {
-    marginBottom: 20, // เพิ่มระยะห่างระหว่างเมนูกาแฟกับหัวเรื่อง
-    fontFamily: 'Arial', // เปลี่ยนแบบอักษร
+    marginBottom: 200, // เพิ่มระยะห่างระหว่างเมนูกาแฟกับหัวเรื่อง
+    fontFamily: 'Inria Serif', // เปลี่ยนแบบอักษร
     fontSize: 30, // กำหนดขนาดอักษร
-    color: '#FFFFFF', // สีของข้อความ
-    alignSelf: 'flex-start', // จัดเรียงตามด้านบนของ container
+    color: '#000000', // สีของข้อความ
   },
   menuItemContainer: {
-    width: Dimensions.get('window').width * 1, // ให้ความกว้างเป็น 80% ของความกว้างของหน้าจอ
+    width: Dimensions.get('window').width, // ให้ความกว้างเท่ากับความกว้างของหน้าจอ
+    alignItems: 'center', // จัดเรียงเมนูให้อยู่ตรงกลาง
     padding: 20, // เพิ่มช่องว่างรอบขอบของเมนู
     borderRadius: 10, // กำหนดขอบเขตโค้งของเมนู
   },
   menuItem: {
-    marginBottom: 10, // เพิ่มระยะห่างระหว่างรายการเมนู
-    fontFamily: 'Arial', // เปลี่ยนแบบอักษร
+    marginBottom: 60, // เพิ่มระยะห่างระหว่างรายการเมนู
+    fontFamily: 'Inria Serif', // เปลี่ยนแบบอักษร
     fontSize: 20, // กำหนดขนาดอักษร
-    color: '#FFFFFF', // สีของข้อความ
+    color: '#000000', // สีของข้อความ
   },
 });
