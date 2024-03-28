@@ -66,17 +66,17 @@ const styles = StyleSheet.create({
   },
   menuItemContainer: {
     width: Dimensions.get('window').width,
-    alignItems: 'flex-start', // จัดเรียงเนื้อหาให้ชิดด้านซ้าย
+    alignItems: 'flex-start', // Align items to the left
     padding: 20,
     borderRadius: 10,
   },
   menuItem: {
-    flexDirection: 'row', // เพิ่มเพื่อให้รูปและข้อความเรียงในแนวนอน
+    flexDirection: 'row',
     marginBottom: 20,
-    alignItems: 'center', // จัดให้รูปและข้อความอยู่กึ่งกลางตามแนวตั้ง
+    alignItems: 'center',
+    marginLeft: 30,
   },
   menuItemIcon: {
-    marginRight: 10,
     width: 70,
     height: 90,
     borderRadius: 6,
@@ -85,5 +85,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Inria Serif',
     fontSize: 20,
     color: '#000000',
+    marginLeft: 100, // Add left margin to text
+    // Add border styles for the button-like effect
+    borderWidth: 3,
+    borderColor: '#000000',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
 });
