@@ -19,6 +19,9 @@ export default function App() {
   const Latte = {
     uri: 'https://coffeeaffection.com/wp-content/uploads/2021/05/Spanish-latte-milk-and-espresso.jpg',
   };
+  const Logocoffee = {
+    uri: 'https://i.pinimg.com/originals/86/35/91/8635916db47d59862c20162626f8a1f3.png',
+  };
 
   return (
     <View style={styles.container}>
@@ -27,6 +30,7 @@ export default function App() {
       <Text style={[styles.menuTitle, styles.selectMenu]}>
         กดเพื่อเลือกเมนู
       </Text>
+      <Text style={styles.orderHere}>ORDER YOUR COFFEE</Text> 
       <View style={styles.menuItemContainer}>
         <View style={styles.menuItem}>
           <Image source={Mocca} style={styles.menuItemIcon} />
@@ -50,7 +54,8 @@ export default function App() {
         </View>
       </View>
       <View style={styles.taskBar}>
-        <Text style={styles.taskBarText}>Task bar</Text>
+        <Image source={Logocoffee} style={styles.taskBarIcon} />
+        <Text style={styles.taskBarText}>เมนู</Text>
       </View>
     </View>
   );
@@ -65,10 +70,12 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   menuTitle: {
-    marginBottom: 50,
+    marginBottom: 66,
     fontFamily: 'Arial',
-    fontSize: 30,
+    fontSize: 45,
     color: '#000000',
+    right: 100,
+    top:-25,
   },
   selectMenu: {
     fontSize: 15,
@@ -99,27 +106,52 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#000000',
     marginLeft: 100,
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: '#000000',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
+    overflow: 'hidden', // Ensures the background does not overflow the rounded corners
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   taskBar: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 5,
     width: '100%',
-    backgroundColor: '#7E7E7E', // สีพื้นหลังของ task bar
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#CCCCCC',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'row',
+  },
+  taskBarIcon: {
+    width: 50,
+    height: 30,
+    marginRight: 10,
   },
   taskBarText: {
     fontFamily: 'Arial',
-    fontSize: 30, // ขนาดข้อความของ task bar
-    color: '#000000', // สีข้อความของ task bar
+    fontSize: 20,
+    color: '#000000',
   },
+  orderHere: {
+    position: 'absolute',
+    top: 78, // Adjust the top value as needed
+    right: 20, // Adjust the right value as needed
+    fontFamily: 'Arial',
+    fontSize: 15,
+    color: '#000000', // Color of the text
+    backgroundColor: '#FFF8DC', // Background color of the search bar
+    paddingHorizontal: 10, // Padding horizontal for inner text spacing
+    paddingVertical: 5, // Padding vertical for inner text spacing
+    borderRadius: 16, // Rounded corners for the search bar look
+    borderWidth: 2, // Border thickness
+    borderColor: '#000000', // Border color
+    overflow: 'hidden', // Ensures the background does not overflow the rounded corners
+  },
+  
 });
