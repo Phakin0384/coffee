@@ -24,6 +24,9 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="auto" />
       <Text style={styles.menuTitle}>เมนู</Text>
+      <Text style={[styles.menuTitle, styles.selectMenu]}>
+        กดเพื่อเลือกเมนู
+      </Text>
       <View style={styles.menuItemContainer}>
         <View style={styles.menuItem}>
           <Image source={Mocca} style={styles.menuItemIcon} />
@@ -46,6 +49,9 @@ export default function App() {
           <Text style={styles.menuItemText}>Latte</Text>
         </View>
       </View>
+      <View style={styles.taskBar}>
+        <Text style={styles.taskBarText}>Task bar</Text>
+      </View>
     </View>
   );
 }
@@ -59,14 +65,21 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   menuTitle: {
-    marginBottom: 20,
-    fontFamily: 'Inria Serif',
+    marginBottom: 50,
+    fontFamily: 'Arial',
     fontSize: 30,
     color: '#000000',
   },
+  selectMenu: {
+    fontSize: 15,
+    fontFamily: 'Arial',
+    position: 'absolute',
+    top: 170,
+    right: 70,
+  },
   menuItemContainer: {
     width: Dimensions.get('window').width,
-    alignItems: 'flex-start', // Align items to the left
+    alignItems: 'flex-start',
     padding: 20,
     borderRadius: 10,
   },
@@ -85,12 +98,28 @@ const styles = StyleSheet.create({
     fontFamily: 'Inria Serif',
     fontSize: 20,
     color: '#000000',
-    marginLeft: 100, // Add left margin to text
-    // Add border styles for the button-like effect
+    marginLeft: 100,
     borderWidth: 3,
     borderColor: '#000000',
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
+  },
+  taskBar: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: '#7E7E7E', // สีพื้นหลังของ task bar
+    borderTopWidth: 1,
+    borderTopColor: '#CCCCCC',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  taskBarText: {
+    fontFamily: 'Arial',
+    fontSize: 30, // ขนาดข้อความของ task bar
+    color: '#000000', // สีข้อความของ task bar
   },
 });
