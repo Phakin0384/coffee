@@ -25,34 +25,41 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      
       <StatusBar style="auto" />
       <Text style={styles.menuTitle}>เมนู</Text>
-      <Text style={[styles.menuTitle, styles.selectMenu]}>
-        กดเพื่อเลือกเมนู
-      </Text>
+
+      <Text style={[styles.menuTitle, styles.selectMenu]}>กดเพื่อเลือกเมนู</Text>
+
       <Text style={styles.orderHere}>ORDER YOUR COFFEE</Text> 
+
       <View style={styles.menuItemContainer}>
         <View style={styles.menuItem}>
           <Image source={Mocca} style={styles.menuItemIcon} />
           <Text style={styles.menuItemText}>Mocca</Text>
         </View>
+
         <View style={styles.menuItem}>
           <Image source={Americano} style={styles.menuItemIcon} />
           <Text style={styles.menuItemText}>Americano</Text>
         </View>
+
         <View style={styles.menuItem}>
           <Image source={Espresso} style={styles.menuItemIcon} />
           <Text style={styles.menuItemText}>Espresso</Text>
         </View>
+
         <View style={styles.menuItem}>
           <Image source={Cappuccino} style={styles.menuItemIcon} />
           <Text style={styles.menuItemText}>Cappuccino</Text>
         </View>
+
         <View style={styles.menuItem}>
           <Image source={Latte} style={styles.menuItemIcon} />
           <Text style={styles.menuItemText}>Latte</Text>
         </View>
       </View>
+
       <View style={styles.taskBar}>
         <Image source={Logocoffee} style={styles.taskBarIcon} />
         <Text style={styles.taskBarText}>เมนู</Text>
