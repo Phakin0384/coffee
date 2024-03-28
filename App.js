@@ -2,10 +2,12 @@ import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import Menu from './frontend/menu';
+import Buymocca from './frontend/buymocca';
 export default function App() {
   return (
     <View style={styles.container}>
     <Menu/>
+    <Buymocca/>
     </View>
   );
 }
