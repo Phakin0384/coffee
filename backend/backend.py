@@ -30,7 +30,7 @@ def get_all_coffee():
 @cross_origin()
 def bill():
     data = request.get_json()
-    
+    print("oak")
     
     count = len(coffee)
     cof = 0
