@@ -3,10 +3,22 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const Moneycapuchino = () => {
-    const navigation = useNavigation();
-    const handleTap = () => {
-        navigation.navigate('Home');
-      };
+  const navigation = useNavigation();
+  const handleTap = () => {
+    const data={
+      prices:price
+    }
+      navigation.navigate('Home');
+      axios.post("http://10.64.40.137:5000/bill", data)
+  .then(response => {
+    console.log(response.data); // Log response for debugging
+    navigation.navigate('Home');
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error occurred while processing your order. Please try again later.');
+  });
+    };
 
 //export default function App() {
   const Cappuccino = {
