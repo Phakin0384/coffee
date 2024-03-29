@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Dimensions, Image } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, Image, TouchableOpacity } from 'react-native';
 
 export default function App() {
-  const Amaricano = {
+  const Americano = {
     uri: 'https://www.acouplecooks.com/wp-content/uploads/2022/01/Iced-Americano-008s.jpg',
   };
   const Hot = {
@@ -13,30 +13,38 @@ export default function App() {
     uri: 'https://static.thenounproject.com/png/1184671-200.png',
   };
 
+  const [sweetness, setSweetness] = useState(null);
+  const [temperature, setTemperature] = useState(null);
+
+  const handleSweetnessSelection = (level) => {
+    setSweetness(level);
+  };
+
+  const handleTemperatureSelection = (type) => {
+    setTemperature(type);
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.textback}>
-        <Text style={styles.text}>ย้อนกลับ</Text>
-        </View>
-      <Image source={Amaricano} style={styles.Amaricanoimage}/>
+      <Image source={Americano} style={styles.Americanoimage}/>
       <View style={styles.textBox}>
-        <Text style={styles.text}>Amaricano</Text>
-        </View>
+        <Text style={styles.text}>Americano</Text>
+      </View>
 
-        <Image source={Hot} style={styles.Hotimage}/>
-        <View style={styles.textselecthot}>
-        <Text style={styles.text}>ร้อน</Text>
-        </View>
-        <Image source={Cold} style={styles.Coldimage}/>
-        <View style={styles.textselectcold}>
-        <Text style={styles.text}>เย็น</Text>
-        </View>
-        <View style={styles.textselectcancel}>
-        <Text style={styles.text}>ยกเลิก</Text>
-        </View>
-        <View style={styles.textselectcoreect}>
+      <Image source={Hot} style={styles.Hotimage}/>
+      <TouchableOpacity onPress={() => handleTemperatureSelection('hot')} style={styles.textselecthot}>
+        <Text style={[styles.text, temperature === 'hot' && styles.selected]}>ร้อน</Text>
+      </TouchableOpacity>
+
+      <Image source={Cold} style={styles.Coldimage}/>
+      <TouchableOpacity onPress={() => handleTemperatureSelection('cold')} style={styles.textselectcold}>
+        <Text style={[styles.text, temperature === 'cold' && styles.selected]}>เย็น</Text>
+      </TouchableOpacity>
+
+
+      <View style={styles.textselectcoreect}>
         <Text style={styles.text}>ยืนยันคำสั่งซื้อ</Text>
-        </View>
+      </View>
     </View>
   );
 }
@@ -44,112 +52,80 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEE8DC', // กำหนดสีพื้นหลังของทั้งหน้าจอ
+    backgroundColor: '#EEE8DC',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    width:400,
+    width: 400,
   },
-  Amaricanoimage: {
-    width: 290, // กำหนดความกว้างของรูปภาพ
-    height: 370, // กำหนดความสูงของรูปภาพ
-    marginBottom: -100, // กำหนดระยะห่างจากข้อความด้านล่าง
+  Americanoimage: {
+    width: 290,
+    height: 370,
+    marginBottom: -100,
     margin: 5,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    top: -70
+    top: -90
   },
   Hotimage: {
-    width: 30, // กำหนดความกว้างของรูปภาพ
-    height: 40, // กำหนดความสูงของรูปภาพ
-    top: 65,
+    width: 30,
+    height: 40,
+    top: 75,
     right: 130
   },
   Coldimage: {
-    width: 40, // กำหนดความกว้างของรูปภาพ
-    height: 40, // กำหนดความสูงของรูปภาพ
-    top: -12,
+    width: 40,
+    height: 40,
+    top: -5,
     left: 130,
   },
-  textback: {
-    margin: 13,
-    right: 89,
-    top: 7,
-    borderWidth: 3,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-    backgroundColor: '#E8FFC1'
-  },
   textBox: {
-    borderWidth: 2, // กำหนดความหนาของกรอบ
-    borderColor: 'black', // กำหนดสีของกรอบ
-    paddingHorizontal: 90, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
+    borderWidth: 2,
+    borderColor: 'black',
+    paddingHorizontal: 90,
+    paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 5,
-    top: 40,
-  },
-  text: {
-    fontSize: 20, // กำหนดขนาดของตัวอักษร
-    fontFamily: 'Arial',
-  },
-  textSweet: {
-    paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-    borderRadius: 20,
-    paddingHorizontal: 30,
-    backgroundColor: '#EBCCCC',
-    paddingVertical: 5,
-    top: 120,
-  },
-  textselecthot: {
-    paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-    borderWidth: 2, // กำหนดความหนาของกรอบ
-    borderColor: 'black', // กำหนดสีของกรอบ
-    borderRadius: 20,
-    paddingHorizontal: 20,
     backgroundColor: '#FFFFFF',
     paddingVertical: 5,
     top: 30,
+  },
+  text: {
+    fontSize: 20,
+    fontFamily: 'Arial',
+  },
+  textselecthot: {
+    borderWidth: 2, // กำหนดความหนาของกรอบ
+    borderColor: 'black', // กำหนดสีของกรอบ
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    borderRadius: 20,
+    backgroundColor: "#F5F5F5",
+    top: 40,
     right: 60,
   },
-    textselectcold: {
-      paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-      paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-      borderWidth: 2, // กำหนดความหนาของกรอบ
-      borderColor: 'black', // กำหนดสีของกรอบ
-      borderRadius: 20,
-      paddingHorizontal: 20,
-      backgroundColor: '#FFFFFF',
-      paddingVertical: 5,
-      top: -51,
-      left: 60,
-  },
-  textselectcancel: {
-    paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-    borderWidth: 3, // กำหนดความหนาของกรอบ
+  textselectcold: {
+    borderWidth: 2, // กำหนดความหนาของกรอบ
     borderColor: 'black', // กำหนดสีของกรอบ
-    borderRadius: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#F1A4A4',
     paddingVertical: 5,
-    top: 34,
-    right: 90,
+    borderRadius: 20,
+    backgroundColor: "#F5F5F5",
+    top: -41,
+    left: 60,
   },
   textselectcoreect: {
-    paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-    borderWidth: 3, // กำหนดความหนาของกรอบ
+    borderWidth: 2, // กำหนดความหนาของกรอบ
     borderColor: 'black', // กำหนดสีของกรอบ
+    paddingHorizontal: 30,
+    paddingVertical: 8,
     borderRadius: 20,
-    paddingHorizontal: 20,
     backgroundColor: '#E8FFC1',
-    paddingVertical: 5,
-    top: -8,
-    left: 80,
-  }
+    top: 10,
+    left: 0,
+  },
+  selected: {
+    backgroundColor: '#F1A4A4', 
+    borderRadius: 20,
+  },
 });
