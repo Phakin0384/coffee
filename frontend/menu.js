@@ -6,18 +6,7 @@ import axios from 'axios';
 export default function App() {
   
   const navigation = useNavigation();
-  const axios = require('axios')
-  const test1Press = async () => {
-    try
-    {
-      await axios.post('https://mynodeserver.com/api/debug/throw', {timeout: 2000})
-      console.log("post call passed")
-    }
-    catch (err)
-    {
-      console.log("post call failed")
-    }
-  }
+  
   const handleMenuPress = (menuItem) => {
     switch (menuItem) {
       case "Mocca":
