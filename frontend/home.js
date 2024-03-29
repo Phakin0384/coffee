@@ -4,11 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 
 const Home = () => {
   const navigation = useNavigation();
-  const [name, setName] = useState('');
 
   const handleTap = () => {
     // Navigate to the screen you want upon tapping
-    navigation.navigate('Home');
+    navigation.navigate('Menu');
   };
 
   return (
