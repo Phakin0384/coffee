@@ -202,5 +202,5 @@ const styles = StyleSheet.create({
   selected: {
     backgroundColor: '#F1A4A4', 
     borderRadius: 20,
-  }
+  },
 });
