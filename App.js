@@ -6,10 +6,12 @@ import Menu from './frontend/menu';
 import Buymocca from './frontend/buymocca';
 import Buyamaricano from './frontend/buyamaricano'
 import Buyespresso from './frontend/buyespresso'
+import Buycapuchino from './frontend/buycapuchino'
+import BuyLatte from './frontend/buylatte'
 export default function App() {
   return (
     <View style={styles.container}>
-    <Buyespresso/>
+    <BuyLatte/>
     </View>
     
   );

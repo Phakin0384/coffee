@@ -3,8 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Dimensions, Image } from 'react-native';
 
 export default function App() {
-  const Cappuccino = {
-    uri: 'https://coffeeaffection.com/wp-content/uploads/2021/02/does-a-cappuccino-have-caffeine.jpg',
+  const Latte = {
+    uri: 'https://coffeeaffection.com/wp-content/uploads/2021/05/Spanish-latte-milk-and-espresso.jpg',
   };
   const Hot = {
     uri: 'https://www.freeiconspng.com/uploads/black-flame-icon-png-24.png',
@@ -22,9 +22,9 @@ export default function App() {
       <View style={styles.textback}>
         <Text style={styles.text}>ย้อนกลับ</Text>
         </View>
-      <Image source={Cappuccino} style={styles.Cappuccinoimage}/>
+      <Image source={Latte} style={styles.Latteimage}/>
       <View style={styles.textBox}>
-        <Text style={styles.text}>Cappuccino</Text>
+        <Text style={styles.text}>Latte</Text>
         </View>
 
         <View style={styles.textSweet}>
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     right : 160,
     top: 36,
   },
-  Cappuccinoimage: {
+  Latteimage: {
     width: 290, // กำหนดความกว้างของรูปภาพ
     height: 370, // กำหนดความสูงของรูปภาพ
     marginBottom: -100, // กำหนดระยะห่างจากข้อความด้านล่าง
