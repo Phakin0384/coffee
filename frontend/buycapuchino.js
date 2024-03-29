@@ -27,7 +27,7 @@ export default function App() {
 
   const navigation = useNavigation();
   const handleMenuPress = (textselectcoreect) =>{
-    navigation.navigate('CAPUCCINO');
+    navigation.navigate('CAPUCHINO');
   }
 
   return (
