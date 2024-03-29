@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Home from './frontend/home';
 import Buymocca from './frontend/buymocca';
 import Menu from './frontend/menu';
+import 'react-native-gesture-handler';
 export default function App() {
   return (
     <View style={styles.container}>
