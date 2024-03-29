@@ -1,19 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StatusBar, TouchableOpacity, StyleSheet, Text, View, Dimensions, Image } from 'react-native';
-import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
 export default function App() {
-  useEffect(() => {
-    axios.get('mongodb+srv://Phakin1824:Geng_100104@cluster0.pzjda8i.mongodb.net/')
-      .then(response => {
-        console.log(response.data); // Menu data received from the backend
-      })
-      .catch(error => {
-        console.error('Error fetching menu data:', error);
-      });
-  }, []); // Empty dependency array ensures the effect runs only once, similar to componentDidMount
-
+  
   const navigation = useNavigation();
   const handleMenuPress = (menuItem) => {
     // Navigate to the appropriate Buy page based on the pressed menu item
