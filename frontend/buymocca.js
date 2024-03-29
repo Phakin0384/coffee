@@ -202,9 +202,5 @@ const styles = StyleSheet.create({
   selected: {
     backgroundColor: '#F1A4A4', 
     borderRadius: 20,
-<<<<<<< HEAD
   },
-=======
-  }
->>>>>>> 061be3ad0bce2d4dbf74dedf2b71163c0d3b072e
 });
