@@ -4,11 +4,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import Home from './frontend/home';
 import Menu from './frontend/menu';
 import Buymocca from './frontend/buymocca';
-import amaricano from './frontend/buyamaricano';
+import TEST from './frontend/buyamaricano'
 export default function App() {
   return (
     <View style={styles.container}>
-    <Menu/>
+    <TEST/>
     </View>
     
   );
