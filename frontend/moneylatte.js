@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 const Moneylatte = () => {
   const navigation = useNavigation();
   const handleTap = () => {
     const data={
-      prices:price
+      prices: navigation.getParam('price')
     }
       navigation.navigate('Home');
       axios.post("http://10.64.40.137:5000/bill", data)
