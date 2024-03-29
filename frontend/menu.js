@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     fontSize: 45,
     color: '#000000',
     right: 100,
-    top:-25,
+    top:20,
   },
   selectMenu: {
     fontSize: 15,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   menuItemText: {
-    fontFamily: 'Inria Serif',
+    fontFamily: 'Arial',
     fontSize: 20,
     color: '#000000',
     marginLeft: 100,
