@@ -60,11 +60,6 @@ export default function App() {
           <Text style={styles.menuItemText}>Latte</Text>
         </View>
       </View>
-
-      <View style={styles.taskBar}>
-        <Image source={Logocoffee} style={styles.taskBarIcon} />
-        <Text style={styles.taskBarText}>เมนู</Text>
-      </View>
     </View>
   );
 }
@@ -122,30 +117,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden', // Ensures the background does not overflow the rounded corners
     paddingHorizontal: 10,
     paddingVertical: 5,
-  },
-  taskBar: {
-    position: 'absolute',
-    bottom: 5,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#CCCCCC',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  taskBarIcon: {
-    width: 50,
-    height: 30,
-    marginRight: 10,
-  },
-  taskBarText: {
-    fontFamily: 'Arial',
-    fontSize: 20,
-    color: '#000000',
   },
   orderHere: {
     position: 'absolute',
