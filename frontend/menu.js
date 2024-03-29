@@ -6,93 +6,79 @@ import axios from 'axios';
 export default function App() {
   
   const navigation = useNavigation();
- 
-
-// const test1Press = () => {
-//   try
-//   {
-//     axios.post("http://127.0.0.1:5000/bill",data)
-//     console.log("post call passed")
-//   }
-//   catch (err)
-//   {
-//     console.log("post call failed")
-//   }
-// }
 
   const handleMenuPress = (menuItem) => {
     switch (menuItem) {
       case "Mocca":
-        console.log("MOCCA");
         const data ={
-          name:"MOCCA"
+          name:menuItem
         }
         navigation.navigate('BuyMocca');
-        axios.post("http://127.0.0.1:5000/bill", data )
-      .then(response => {
-        console.log(response.data); // Log response for debugging
-        navigation.navigate('MOCCA');
-      })
-      .catch(error => {
-        if (error.code === 'ECONNABORTED') {
+        //axios.post("http://10.64.40.137:5000/", data )
+      // .then(response => {
+        //console.log(response.data);
+        // navigation.navigate('MOCCA');
+      // })
+      // .catch(error => {
+        // if (error.code === 'ECONNABORTED') {
       // Timeout error
-      console.error('Timeout Error:', error);
+      // console.error('Timeout Error:', error);
       // alert('Request timed out. Please try again later.');
-    } else {
+    // } else {
       // Other errors
-      console.error('Error:', error);
+      // console.error('Error:', error);
       // alert('An error occurred. Please try again later.');
-    }
-      });
+    // }
+      // });
 
         break;
       case "Americano":
         navigation.navigate('BuyAmericano');
-        axios.post("http://10.64.40.137:5000/bill", data)
-      .then(response => {
-        console.log(response.data); // Log response for debugging
-        navigation.navigate('AMARICANO');
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // alert('Error occurred while processing your order. Please try again later.');
-      });
+      //   axios.post("http://10.64.40.137:5000/bill", data)
+      // .then(response => {
+      //   console.log(response.data); // Log response for debugging
+      //   navigation.navigate('AMARICANO');
+      // })
+      // .catch(error => {
+      //   console.error('Error:', error);
+      //   alert('Error occurred while processing your order. Please try again later.');
+      // });
         break;
       case "Espresso":
         navigation.navigate('BuyEspresso');
-        axios.post("http://10.64.40.137:5000/bill", data)
-      .then(response => {
-        console.log(response.data); // Log response for debugging
-        navigation.navigate('ESPRESSO');
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // alert('Error occurred while processing your order. Please try again later.');
-      });
+      //   axios.post("http://10.64.40.137:5000/bill", data)
+      // .then(response => {
+      //   console.log(response.data); // Log response for debugging
+      //   navigation.navigate('ESPRESSO');
+      // })
+      // .catch(error => {
+      //   console.error('Error:', error);
+      //    alert('Error occurred while processing your order. Please try again later.');
+      // });
         break;
       case "Cappuccino":
         navigation.navigate('BuyCappuccino');
-        axios.post("http://10.64.40.137:5000/bill", data)
-      .then(response => {
-        console.log(response.data); // Log response for debugging
-        navigation.navigate('CAPUCHINO');
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // alert('Error occurred while processing your order. Please try again later.');
-      });
+      //   axios.post("http://10.64.40.137:5000/bill", data)
+      // .then(response => {
+      //   console.log(response.data); // Log response for debugging
+      //   navigation.navigate('CAPUCHINO');
+      // })
+      // .catch(error => {
+      //   console.error('Error:', error);
+      //    alert('Error occurred while processing your order. Please try again later.');
+      // });
         break;
       case "Latte":
         navigation.navigate('BuyLatte');
-        axios.post("http://10.64.40.137:5000/bill", data)
-      .then(response => {
-        console.log(response.data); // Log response for debugging
-        navigation.navigate('LATTE');
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // alert('Error occurred while processing your order. Please try again later.');
-      });
+      //   axios.post("http://10.64.40.137:5000/bill", data)
+      // .then(response => {
+      //   console.log(response.data); // Log response for debugging
+      //   navigation.navigate('LATTE');
+      // })
+      // .catch(error => {
+      //   console.error('Error:', error);
+      //    alert('Error occurred while processing your order. Please try again later.');
+      // });
         break;
       default:
         break;

@@ -30,7 +30,6 @@ def get_all_coffee():
 @cross_origin()
 def bill():
     data = request.get_json()
-    print("oak")
     
     count = len(coffee)
     cof = 0
@@ -39,7 +38,7 @@ def bill():
     
     new_coffee = {
         "_id": cof,
-        "name": data["username"],
+        "name": data["name"],
         "sweetness": data["sweetness"],
         "price": data["price"],
         "temp": data["temp"]

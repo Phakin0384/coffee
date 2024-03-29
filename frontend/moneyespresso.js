@@ -10,15 +10,15 @@ const Moneyespresso = () => {
       prices: navigation.setParams('price')
     }
       navigation.navigate('Home');
-      axios.post("http://10.64.40.137:5000/bill", data ,{ timeout: 10000 })
-  .then(response => {
-    console.log(response.data); // Log response for debugging
-    navigation.navigate('Home');
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('Error occurred while processing your order. Please try again later.');
-  });
+  //     axios.post("http://10.64.40.137:5000/bill", data ,{ timeout: 10000 })
+  // .then(response => {
+  //   console.log(response.data); // Log response for debugging
+  //   navigation.navigate('Home');
+  // })
+  // .catch(error => {
+  //   console.error('Error:', error);
+  //   alert('Error occurred while processing your order. Please try again later.');
+  // });
     };
 
 //export default function App() {
@@ -36,11 +36,10 @@ const Moneyespresso = () => {
         <Text style={styles.text}>Espresso</Text>
         </View>
         
-        <Image source={QR} style={styles.QRiamge}/>
+        <Image source={QR} style={styles.QRimage}/>
         <View style={styles.BATHtext}>
           <Text style={styles.text}>ราคา 50 BATH</Text>
         </View>
-        <Image source={QR} style={styles.QRimage}/>
             <TouchableOpacity style={styles.textTHX} onPress={handleTap}>
                 <Text style={styles.text}>THANK YOU</Text>
             </TouchableOpacity>
@@ -89,7 +88,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 20, // กำหนดขนาดของตัวอักษร
   },
-  QRiamge: {
+  QRimage: {
     width: 150, // กำหนดความกว้างของรูปภาพ
     height: 150, // กำหนดความสูงของรูปภาพ
     right : 0,
