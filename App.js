@@ -11,6 +11,10 @@ import Buycapuchino from './frontend/buycapuchino';
 import BuyLatte from './frontend/buylatte';
 import 'react-native-gesture-handler';
 import Moneymocca from './frontend/moneymocca';
+import Moneylatte from './frontend/moneylatte';
+import Moneyespresso from './frontend/moneyespresso';
+import Moneycapuchino from './frontend/moneycapuchino';
+import Moneyamaricano from './frontend/moneyamaricano';
 
 const Stack = createStackNavigator();
 
@@ -18,10 +22,18 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Menu" component={Menu} />
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }}/>
+        <Stack.Screen name="Menu" component={Menu} />
+        <Stack.Screen name="BuyMocca" component={Buymocca} />
+        <Stack.Screen name="BuyAmaricano" component={Buyamaricano} />
+        <Stack.Screen name="BuyEspresso" component={Buyespresso} />
+        <Stack.Screen name="BuyCapuchino" component={Buycapuchino} />
         <Stack.Screen name="BuyLatte" component={BuyLatte} />
-        <Stack.Screen name="Moneymocca" component={Moneymocca} />
+        <Stack.Screen name="MOCCA" component={Moneymocca} />
+        <Stack.Screen name="AMARICANO" component={Moneyamaricano} />
+        <Stack.Screen name="CAPUCHINO" component={Moneycapuchino} />
+        <Stack.Screen name="ESPRESSO" component={Moneyespresso} />
+        <Stack.Screen name="LATTE" component={Moneylatte} />
       </Stack.Navigator>
     </NavigationContainer>
   );
