@@ -7,7 +7,7 @@ const Moneylatte = () => {
   const navigation = useNavigation();
   const handleTap = () => {
     const data={
-      prices: navigation.getParam('price')
+      prices: navigation.setParams('price')
     }
       navigation.navigate('Home');
       axios.post("http://10.64.40.137:5000/bill", data)

@@ -7,7 +7,7 @@ const Moneyamaricano = () => {
     const navigation = useNavigation();
     const handleTap = () => {
       const data={
-        prices: navigation.getParam('price')
+        prices: navigation.setParams('price')
       }
         navigation.navigate('Home');
         axios.post("http://10.64.40.137:5000/bill", data)
@@ -39,7 +39,7 @@ const Moneyamaricano = () => {
         <View style={styles.BATHtext}>
           <Text style={styles.text}>ราคา 50 BATH</Text>
         </View>
-        <Image source={QR} style={styles.QRimage}/>
+        <Image source={QR} style={styles.QRiamge}/>
             <TouchableOpacity style={styles.textTHX} onPress={handleTap}>
                 <Text style={styles.text}>THANK YOU</Text>
             </TouchableOpacity>
