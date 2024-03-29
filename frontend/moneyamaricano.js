@@ -5,10 +5,21 @@ import { useNavigation } from '@react-navigation/native';
 const Moneyamaricano = () => {
     const navigation = useNavigation();
     const handleTap = () => {
+      const data={
+        prices:price
+      }
         navigation.navigate('Home');
+        axios.post("http://10.64.40.137:5000/bill", data)
+    .then(response => {
+      console.log(response.data); // Log response for debugging
+      navigation.navigate('Home');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error occurred while processing your order. Please try again later.');
+    });
       };
 
-//export default function App() {
   const amaricano = {
     uri: 'https://www.acouplecooks.com/wp-content/uploads/2022/01/Iced-Americano-008s.jpg',
   };
