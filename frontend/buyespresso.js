@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function App() {
   const Espresso = {
@@ -23,6 +24,11 @@ export default function App() {
   const handleTemperatureSelection = (type) => {
     setTemperature(type);
   };
+
+  const navigation = useNavigation();
+  const handleMenuPress = (textselectcoreect) =>{
+    navigation.navigate('ESPRESSO');
+  }
 
   return (
     <View style={styles.container}>
@@ -68,7 +74,9 @@ export default function App() {
 
 
       <View style={styles.textselectcoreect}>
-        <Text style={styles.text}>ยืนยันคำสั่งซื้อ</Text>
+        <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress("ยืนยันคำสั่งซื้อ")}>
+          <Text style={styles.text}>ยืนยันคำสั่งซื้อ</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
