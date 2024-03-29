@@ -22,7 +22,7 @@ const Moneyamaricano = () => {
     <View style={styles.container}>
       <Image source={amaricano} style={styles.amaricanoimage}/>
       <View style={styles.textBox}>
-        <Text style={styles.text}>Amaricano</Text>
+        <Text style={styles.text}>Americano</Text>
         </View>
         
         <Image source={QR} style={styles.QRiamge}/>
