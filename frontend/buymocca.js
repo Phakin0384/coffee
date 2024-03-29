@@ -24,6 +24,7 @@ export default function App() {
   const handleTemperatureSelection = (type) => {
     setTemperature(type);
   };
+  
   const navigation = useNavigation();
   const handleMenuPress = (textselectcoreect) =>{
     navigation.navigate('MOCCA');
