@@ -1,9 +1,43 @@
-import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Dimensions, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar, TouchableOpacity, StyleSheet, Text, View, Dimensions, Image } from 'react-native';
+import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
 export default function App() {
+  useEffect(() => {
+    axios.get('http://localhost:5000/api/menu')
+      .then(response => {
+        console.log(response.data); // Menu data received from the backend
+      })
+      .catch(error => {
+        console.error('Error fetching menu data:', error);
+      });
+  }, []); // Empty dependency array ensures the effect runs only once, similar to componentDidMount
+
+  const navigation = useNavigation();
+  const handleMenuPress = (menuItem) => {
+    // Navigate to the appropriate Buy page based on the pressed menu item
+    switch (menuItem) {
+      case "Mocca":
+        navigation.navigate('BuyMocca');
+        break;
+      case "Americano":
+        navigation.navigate('BuyAmericano');
+        break;
+      case "Espresso":
+        navigation.navigate('BuyEspresso');
+        break;
+      case "Cappuccino":
+        navigation.navigate('BuyCappuccino');
+        break;
+      case "Latte":
+        navigation.navigate('BuyLatte');
+        break;
+      default:
+        break;
+    }
+  };
+
   const Mocca = {
     uri: 'https://www.everyday-delicious.com/wp-content/uploads/2021/05/caffee-mocha-kawa-mokka-everyday-delicious-1-1197x1800.jpg',
   };
@@ -26,39 +60,36 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      
       <StatusBar style="auto" />
       <Text style={styles.menuTitle}>เมนู</Text>
-
       <Text style={[styles.menuTitle, styles.selectMenu]}>กดเพื่อเลือกเมนู</Text>
-
       <Text style={styles.orderHere}>ORDER YOUR COFFEE</Text> 
 
       <View style={styles.menuItemContainer}>
-        <View style={styles.menuItem}>
-          <Image source={Mocca} style={styles.menuItemIcon} />
+        <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress("Mocca")}>
+          <Image source={Mocca} style={styles.menuItemImage} />
           <Text style={styles.menuItemText}>Mocca</Text>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.menuItem}>
-          <Image source={Americano} style={styles.menuItemIcon} />
+        <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress("Americano")}>
+          <Image source={Americano} style={styles.menuItemImage} />
           <Text style={styles.menuItemText}>Americano</Text>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.menuItem}>
-          <Image source={Espresso} style={styles.menuItemIcon} />
+        <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress("Espresso")}>
+          <Image source={Espresso} style={styles.menuItemImage} />
           <Text style={styles.menuItemText}>Espresso</Text>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.menuItem}>
-          <Image source={Cappuccino} style={styles.menuItemIcon} />
+        <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress("Cappuccino")}>
+          <Image source={Cappuccino} style={styles.menuItemImage} />
           <Text style={styles.menuItemText}>Cappuccino</Text>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.menuItem}>
-          <Image source={Latte} style={styles.menuItemIcon} />
+        <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress("Latte")}>
+          <Image source={Latte} style={styles.menuItemImage} />
           <Text style={styles.menuItemText}>Latte</Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -67,11 +98,11 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEE8DC', // กำหนดสีพื้นหลังของทั้งหน้าจอ
+    backgroundColor: '#EEE8DC',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    width:400,
+    width: 400,
   },
   menuTitle: {
     marginBottom: 66,
@@ -79,7 +110,7 @@ const styles = StyleSheet.create({
     fontSize: 45,
     color: '#000000',
     right: 100,
-    top:20,
+    top: 20,
   },
   selectMenu: {
     fontSize: 15,
@@ -100,7 +131,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 30,
   },
-  menuItemIcon: {
+  menuItemImage: {
     width: 70,
     height: 90,
     borderRadius: 6,
@@ -113,25 +144,24 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000000',
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    overflow: 'hidden', // Ensures the background does not overflow the rounded corners
-    paddingHorizontal: 10,
+    borderRadius: 18,
+    overflow: 'hidden',
+    paddingHorizontal: 15,
     paddingVertical: 5,
   },
   orderHere: {
     position: 'absolute',
-    top: 15, // Adjust the top value as needed
-    right: 20, // Adjust the right value as needed
+    top: 15,
+    right: 20,
     fontFamily: 'Arial',
     fontSize: 15,
-    color: '#000000', // Color of the text
-    backgroundColor: '#FFF8DC', // Background color of the search bar
-    paddingHorizontal: 10, // Padding horizontal for inner text spacing
-    paddingVertical: 5, // Padding vertical for inner text spacing
-    borderRadius: 16, // Rounded corners for the search bar look
-    borderWidth: 2, // Border thickness
-    borderColor: '#000000', // Border color
-    overflow: 'hidden', // Ensures the background does not overflow the rounded corners
+    color: '#000000',
+    backgroundColor: '#FFF8DC',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#000000',
+    overflow: 'hidden',
   },
-  
 });
