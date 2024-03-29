@@ -2,7 +2,16 @@ import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Dimensions, Image } from 'react-native';
 
-export default function App() {
+const Moneymocca = () => {
+    const navigation = useNavigation();
+    const [name, setName] = useState('');
+
+    const handleTap = () => {
+        // Navigate to the screen you want upon tapping
+        navigation.navigate('Moneymocca');
+      };
+
+//export default function App() {
   const Mocca = {
     uri: 'https://www.everyday-delicious.com/wp-content/uploads/2021/05/caffee-mocha-kawa-mokka-everyday-delicious-1-1197x1800.jpg',
   };
@@ -228,3 +237,5 @@ const styles = StyleSheet.create({
     left: 80,
   }
 });
+
+export default Moneymocca;
