@@ -23,11 +23,12 @@ export default function App() {
   const handleMenuPress = (menuItem) => {
     switch (menuItem) {
       case "Mocca":
+        console.log("MOCCA");
         const data ={
-          name:menuItem
+          name:"MOCCA"
         }
         navigation.navigate('BuyMocca');
-        axios.post("http://10.64.40.137:5000/bill", data ,{ timeout: 10000 })
+        axios.post("http://127.0.0.1:5000/bill", data )
       .then(response => {
         console.log(response.data); // Log response for debugging
         navigation.navigate('MOCCA');
@@ -36,11 +37,11 @@ export default function App() {
         if (error.code === 'ECONNABORTED') {
       // Timeout error
       console.error('Timeout Error:', error);
-      alert('Request timed out. Please try again later.');
+      // alert('Request timed out. Please try again later.');
     } else {
       // Other errors
       console.error('Error:', error);
-      alert('An error occurred. Please try again later.');
+      // alert('An error occurred. Please try again later.');
     }
       });
 
@@ -54,7 +55,7 @@ export default function App() {
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Error occurred while processing your order. Please try again later.');
+        // alert('Error occurred while processing your order. Please try again later.');
       });
         break;
       case "Espresso":
@@ -66,7 +67,7 @@ export default function App() {
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Error occurred while processing your order. Please try again later.');
+        // alert('Error occurred while processing your order. Please try again later.');
       });
         break;
       case "Cappuccino":
@@ -78,7 +79,7 @@ export default function App() {
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Error occurred while processing your order. Please try again later.');
+        // alert('Error occurred while processing your order. Please try again later.');
       });
         break;
       case "Latte":
@@ -90,7 +91,7 @@ export default function App() {
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Error occurred while processing your order. Please try again later.');
+        // alert('Error occurred while processing your order. Please try again later.');
       });
         break;
       default:

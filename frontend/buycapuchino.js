@@ -39,7 +39,7 @@ export default function App() {
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Error occurred while processing your order. Please try again later.');
+        // alert('Error occurred while processing your order. Please try again later.');
       });
   }
 
