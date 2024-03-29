@@ -11,7 +11,7 @@ import BuyLatte from './frontend/buylatte'
 export default function App() {
   return (
     <View style={styles.container}>
-    <BuyLatte/>
+    <Home/>
     </View>
     
   );
