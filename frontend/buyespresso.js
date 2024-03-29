@@ -32,7 +32,7 @@ export default function App() {
       temp: temperature
     }
     navigation.navigate('ESPRESSO',{ price: 50 });
-    axios.post("http://10.64.40.137:5000/bill", data)
+    axios.post("http://10.64.40.137:5000/bill", data ,{ timeout: 10000 })
       .then(response => {
         console.log(response.data); // Log response for debugging
         navigation.navigate('ESPRESSO');
