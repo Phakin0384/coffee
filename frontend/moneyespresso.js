@@ -15,7 +15,7 @@ const Moneyespresso = () => {
     uri: 'https://www.thespruceeats.com/thmb/HJrjMfXdLGHbgMhnM0fMkDx9XPQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/what-is-espresso-765702-hero-03_cropped-ffbc0c7cf45a46ff846843040c8f370c.jpg',
   };
   const QR = {
-    uri: 'https://img2.pic.in.th/pic/S__30212103.jpeg',
+    uri: 'https://img5.pic.in.th/file/secure-sv1/S__30220303.jpeg',
   };
 
   return (

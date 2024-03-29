@@ -15,7 +15,7 @@ const Moneyamaricano = () => {
     uri: 'https://www.acouplecooks.com/wp-content/uploads/2022/01/Iced-Americano-008s.jpg',
   };
   const QR = {
-    uri: 'https://img2.pic.in.th/pic/S__30212103.jpeg',
+    uri: 'https://img5.pic.in.th/file/secure-sv1/S__30220303.jpeg',
   };
 
   return (
