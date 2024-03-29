@@ -30,7 +30,7 @@ function App() {
         <Stack.Screen name="BuyCappuccino" component={Buycapuchino} />
         <Stack.Screen name="BuyLatte" component={BuyLatte} />
         <Stack.Screen name="MOCCA" component={Moneymocca} />
-        <Stack.Screen name="AMERICANO" component={Moneyamaricano} />
+        <Stack.Screen name="AMARICANO" component={Moneyamaricano} />
         <Stack.Screen name="CAPUCHINO" component={Moneycapuchino} />
         <Stack.Screen name="ESPRESSO" component={Moneyespresso} />
         <Stack.Screen name="LATTE" component={Moneylatte} />

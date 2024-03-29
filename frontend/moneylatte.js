@@ -26,6 +26,9 @@ const Moneylatte = () => {
         </View>
         
         <Image source={QR} style={styles.QRiamge}/>
+        <View style={styles.BATHtext}>
+          <Text style={styles.text}>ราคา 50 BATH</Text>
+        </View>
         <View style={styles.textTHX}>
         <Text style={styles.text}>THANK YOU</Text>
         </View>
@@ -73,7 +76,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 20, // กำหนดขนาดของตัวอักษร
-    fontFamily: 'Arial',
   },
   QRiamge: {
     width: 150, // กำหนดความกว้างของรูปภาพ
@@ -84,8 +86,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
+  },
+  BATHtext: {
+    top: 50,
   }
-
 });
 
 export default Moneylatte;
