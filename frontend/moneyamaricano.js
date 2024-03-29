@@ -39,7 +39,6 @@ const Moneyamaricano = () => {
         <View style={styles.BATHtext}>
           <Text style={styles.text}>ราคา 50 BATH</Text>
         </View>
-        <Image source={QR} style={styles.QRiamge}/>
             <TouchableOpacity style={styles.textTHX} onPress={handleTap}>
                 <Text style={styles.text}>THANK YOU</Text>
             </TouchableOpacity>
