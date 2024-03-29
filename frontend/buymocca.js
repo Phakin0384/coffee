@@ -26,7 +26,7 @@ export default function App() {
   };
   const navigation = useNavigation();
   const handleMenuPress = (textselectcoreect) =>{
-    navigation.navigate('MoneyMocca');
+    navigation.navigate('MOCCA');
   }
 
   return (
