@@ -19,9 +19,6 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Image source={back} style={styles.backimage}/>
-      <View style={styles.textback}>
-        <Text style={styles.text}>ย้อนกลับ</Text>
-        </View>
       <Image source={Espresso} style={styles.Espressoimage}/>
       <View style={styles.textBox}>
         <Text style={styles.text}>Espresso</Text>
@@ -76,7 +73,7 @@ const styles = StyleSheet.create({
     height: 20, // กำหนดความสูงของรูปภาพ
     margin: -10,
     right : 160,
-    top: 36,
+    top: 20,
   },
   Espressoimage: {
     width: 290, // กำหนดความกว้างของรูปภาพ
@@ -86,17 +83,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
+    top: 30
   },
   Hotimage: {
     width: 30, // กำหนดความกว้างของรูปภาพ
     height: 40, // กำหนดความสูงของรูปภาพ
-    top: 65,
+    top: 95,
     right: 130
   },
   Coldimage: {
     width: 40, // กำหนดความกว้างของรูปภาพ
     height: 40, // กำหนดความสูงของรูปภาพ
-    top: -12,
+    top: 18,
     left: 130,
   },
   textback: {
@@ -116,7 +114,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#FFFFFF',
     paddingVertical: 5,
-    top: 110,
+    top: 140,
   },
   text: {
     fontSize: 20, // กำหนดขนาดของตัวอักษร
@@ -129,7 +127,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     backgroundColor: '#EBCCCC',
     paddingVertical: 5,
-    top: 120,
+    top: 150,
   },
   textselectsweet25: {
     paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
@@ -140,7 +138,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#FFFFFF',
     paddingVertical: 5,
-    top: 132,
+    top: 162,
     right: 130,
   },
   textselectsweet50: {
@@ -152,7 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#FFFFFF',
     paddingVertical: 5,
-    top: 95,
+    top: 125,
     right: 40,
   },
   textselectsweet75: {
@@ -164,7 +162,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#FFFFFF',
     paddingVertical: 5,
-    top: 57,
+    top: 87,
     left: 50,
   },
   textselectsweet100: {
@@ -176,7 +174,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#FFFFFF',
     paddingVertical: 5,
-    top: 20,
+    top: 50,
     left: 140,
   },
   textselecthot: {
@@ -188,7 +186,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#FFFFFF',
     paddingVertical: 5,
-    top: 30,
+    top: 60,
     right: 60,
   },
     textselectcold: {
@@ -200,7 +198,7 @@ const styles = StyleSheet.create({
       paddingHorizontal: 20,
       backgroundColor: '#FFFFFF',
       paddingVertical: 5,
-      top: -51,
+      top: -21,
       left: 60,
   },
   textselectcancel: {
@@ -212,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#F1A4A4',
     paddingVertical: 5,
-    top: 34,
+    top: 20,
     right: 90,
   },
   textselectcoreect: {
@@ -224,7 +222,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#E8FFC1',
     paddingVertical: 5,
-    top: -8,
+    top: -20,
     left: 80,
   }
 });

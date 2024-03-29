@@ -27,23 +27,6 @@ export default function App() {
         <Text style={styles.text}>Amaricano</Text>
         </View>
 
-        <View style={styles.textSweet}>
-        <Text style={styles.text}>ระดับความหวาน</Text>
-        </View>
-
-        <View style={styles.textselectsweet25}>
-        <Text style={styles.text}>25 %</Text>
-        </View>
-
-        <View style={styles.textselectsweet50}>
-        <Text style={styles.text}>50 %</Text>
-        </View>
-        <View style={styles.textselectsweet75}>
-        <Text style={styles.text}>75 %</Text>
-        </View>
-        <View style={styles.textselectsweet100}>
-        <Text style={styles.text}>100 %</Text>
-        </View>
         <Image source={Hot} style={styles.Hotimage}/>
         <View style={styles.textselecthot}>
         <Text style={styles.text}>ร้อน</Text>
@@ -76,7 +59,7 @@ const styles = StyleSheet.create({
     height: 20, // กำหนดความสูงของรูปภาพ
     margin: -10,
     right : 160,
-    top: 36,
+    top: -36,
   },
   Amaricanoimage: {
     width: 290, // กำหนดความกว้างของรูปภาพ
@@ -86,6 +69,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
+    top: -70
   },
   Hotimage: {
     width: 30, // กำหนดความกว้างของรูปภาพ
@@ -116,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#FFFFFF',
     paddingVertical: 5,
-    top: 110,
+    top: 40,
   },
   text: {
     fontSize: 20, // กำหนดขนาดของตัวอักษร
@@ -130,54 +114,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#EBCCCC',
     paddingVertical: 5,
     top: 120,
-  },
-  textselectsweet25: {
-    paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-    borderWidth: 2, // กำหนดความหนาของกรอบ
-    borderColor: 'black', // กำหนดสีของกรอบ
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 5,
-    top: 132,
-    right: 130,
-  },
-  textselectsweet50: {
-    paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-    borderWidth: 2, // กำหนดความหนาของกรอบ
-    borderColor: 'black', // กำหนดสีของกรอบ
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 5,
-    top: 95,
-    right: 40,
-  },
-  textselectsweet75: {
-    paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-    borderWidth: 2, // กำหนดความหนาของกรอบ
-    borderColor: 'black', // กำหนดสีของกรอบ
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 5,
-    top: 57,
-    left: 50,
-  },
-  textselectsweet100: {
-    paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
-    paddingVertical: 10, // กำหนดระยะห่างภายในกรอบด้านบนและล่าง
-    borderWidth: 2, // กำหนดความหนาของกรอบ
-    borderColor: 'black', // กำหนดสีของกรอบ
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 5,
-    top: 20,
-    left: 140,
   },
   textselecthot: {
     paddingHorizontal: 20, // กำหนดระยะห่างภายในกรอบด้านข้าง
