@@ -6,7 +6,20 @@ import axios from 'axios';
 export default function App() {
   
   const navigation = useNavigation();
-  
+ 
+
+// const test1Press = () => {
+//   try
+//   {
+//     axios.post("http://127.0.0.1:5000/bill",data)
+//     console.log("post call passed")
+//   }
+//   catch (err)
+//   {
+//     console.log("post call failed")
+//   }
+// }
+
   const handleMenuPress = (menuItem) => {
     switch (menuItem) {
       case "Mocca":
@@ -20,8 +33,15 @@ export default function App() {
         navigation.navigate('MOCCA');
       })
       .catch(error => {
-        console.error('Error:', error);
-        alert('Error occurred while processing your order. Please try again later.');
+        if (error.code === 'ECONNABORTED') {
+      // Timeout error
+      console.error('Timeout Error:', error);
+      alert('Request timed out. Please try again later.');
+    } else {
+      // Other errors
+      console.error('Error:', error);
+      alert('An error occurred. Please try again later.');
+    }
       });
 
         break;
