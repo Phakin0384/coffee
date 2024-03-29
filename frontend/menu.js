@@ -1,27 +1,76 @@
 import React from 'react';
-import { StatusBar, TouchableOpacity, StyleSheet, Text, View, Dimensions, Image } from 'react-native';
+import { StatusBar, TouchableOpacity, StyleSheet, Text, View, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 export default function App() {
   
   const navigation = useNavigation();
   const handleMenuPress = (menuItem) => {
-    // Navigate to the appropriate Buy page based on the pressed menu item
     switch (menuItem) {
       case "Mocca":
+        const data ={
+          name:menuItem
+        }
         navigation.navigate('BuyMocca');
+        axios.post("http://10.64.40.137:5000/bill", data)
+      .then(response => {
+        console.log(response.data); // Log response for debugging
+        navigation.navigate('MOCCA');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred while processing your order. Please try again later.');
+      });
+
         break;
       case "Americano":
         navigation.navigate('BuyAmericano');
+        axios.post("http://10.64.40.137:5000/bill", data)
+      .then(response => {
+        console.log(response.data); // Log response for debugging
+        navigation.navigate('AMARICANO');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred while processing your order. Please try again later.');
+      });
         break;
       case "Espresso":
         navigation.navigate('BuyEspresso');
+        axios.post("http://10.64.40.137:5000/bill", data)
+      .then(response => {
+        console.log(response.data); // Log response for debugging
+        navigation.navigate('ESPRESSO');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred while processing your order. Please try again later.');
+      });
         break;
       case "Cappuccino":
         navigation.navigate('BuyCappuccino');
+        axios.post("http://10.64.40.137:5000/bill", data)
+      .then(response => {
+        console.log(response.data); // Log response for debugging
+        navigation.navigate('CAPUCHINO');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred while processing your order. Please try again later.');
+      });
         break;
       case "Latte":
         navigation.navigate('BuyLatte');
+        axios.post("http://10.64.40.137:5000/bill", data)
+      .then(response => {
+        console.log(response.data); // Log response for debugging
+        navigation.navigate('LATTE');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred while processing your order. Please try again later.');
+      });
         break;
       default:
         break;
