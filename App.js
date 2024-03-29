@@ -18,10 +18,10 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Moneymocca" component={Moneymocca} />
-        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }}/>
         <Stack.Screen name="Menu" component={Menu} />
+        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }}/>
         <Stack.Screen name="BuyLatte" component={BuyLatte} />
+        <Stack.Screen name="Moneymocca" component={Moneymocca} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -72,10 +72,11 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EEE8DC',
+    backgroundColor: '#EEE8DC', // กำหนดสีพื้นหลังของทั้งหน้าจอ
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 30,
+    position: 'relative',
+    width:400,
   },
   menuTitle: {
     marginBottom: 66,
@@ -89,8 +90,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: 'Arial',
     position: 'absolute',
-    top: 170,
-    right: 70,
+    top: 110,
+    right: 85,
   },
   menuItemContainer: {
     width: Dimensions.get('window').width,
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
   },
   orderHere: {
     position: 'absolute',
-    top: 78, // Adjust the top value as needed
+    top: 15, // Adjust the top value as needed
     right: 20, // Adjust the right value as needed
     fontFamily: 'Arial',
     fontSize: 15,
