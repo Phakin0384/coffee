@@ -15,7 +15,7 @@ const Moneymocca = () => {
     uri: 'https://www.everyday-delicious.com/wp-content/uploads/2021/05/caffee-mocha-kawa-mokka-everyday-delicious-1-1197x1800.jpg',
   };
   const QR = {
-    uri: 'https://img2.pic.in.th/pic/S__30212103.jpeg',
+    uri: 'https://img5.pic.in.th/file/secure-sv1/S__30220303.jpeg',
   };
 
   return (

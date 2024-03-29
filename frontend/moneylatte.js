@@ -15,7 +15,7 @@ const Moneylatte = () => {
     uri: 'https://coffeeaffection.com/wp-content/uploads/2021/05/Spanish-latte-milk-and-espresso.jpg',
   };
   const QR = {
-    uri: 'https://img2.pic.in.th/pic/S__30212103.jpeg',
+    uri: 'https://img5.pic.in.th/file/secure-sv1/S__30220303.jpeg',
   };
 
   return (
