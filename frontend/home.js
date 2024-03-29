@@ -1,8 +1,11 @@
-import React from 'react';
+import React , { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Dimensions, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-export default function App() {
+const Home = () =>{
+  const navigation = useNavigation();
+  const [name,setName] = useState('');
   const home = {
     uri: 'https://img2.pic.in.th/pic/S__30203910.jpeg',
   };
@@ -18,6 +21,11 @@ export default function App() {
     </View>
   );
 }
+// export default function App() {
+  
+// }
+
+export default Home
 
 const styles = StyleSheet.create({
   container: {
