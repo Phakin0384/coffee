@@ -14,16 +14,12 @@ const Moneyespresso = () => {
   const Espresso = {
     uri: 'https://www.thespruceeats.com/thmb/HJrjMfXdLGHbgMhnM0fMkDx9XPQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/what-is-espresso-765702-hero-03_cropped-ffbc0c7cf45a46ff846843040c8f370c.jpg',
   };
-  const back = {
-    uri: 'https://cdn.icon-icons.com/icons2/1339/PNG/512/thinarrowpointingleft_87489.png',
-  };
   const QR = {
     uri: 'https://img2.pic.in.th/pic/S__30212103.jpeg',
   };
 
   return (
     <View style={styles.container}>
-      <Image source={back} style={styles.backimage}/>
       <Image source={Espresso} style={styles.Espressoimage}/>
       <View style={styles.textBox}>
         <Text style={styles.text}>Espresso</Text>
@@ -45,13 +41,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     width:400,
-  },
-  backimage: {
-    width: 30, // กำหนดความกว้างของรูปภาพ
-    height: 20, // กำหนดความสูงของรูปภาพ
-    margin: -10,
-    right : 160,
-    top: -80,
   },
   Espressoimage: {
     width: 290, // กำหนดความกว้างของรูปภาพ

@@ -12,13 +12,9 @@ export default function App() {
   const Cold = {
     uri: 'https://static.thenounproject.com/png/1184671-200.png',
   };
-  const back = {
-    uri: 'https://cdn.icon-icons.com/icons2/1339/PNG/512/thinarrowpointingleft_87489.png',
-  };
 
   return (
     <View style={styles.container}>
-      <Image source={back} style={styles.backimage}/>
       <Image source={Latte} style={styles.Latteimage}/>
       <View style={styles.textBox}>
         <Text style={styles.text}>Latte</Text>
@@ -67,13 +63,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     width:400,
-  },
-  backimage: {
-    width: 30, // กำหนดความกว้างของรูปภาพ
-    height: 20, // กำหนดความสูงของรูปภาพ
-    margin: -10,
-    right : 160,
-    top: 16,
   },
   Latteimage: {
     width: 290, // กำหนดความกว้างของรูปภาพ

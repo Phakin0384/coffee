@@ -14,16 +14,12 @@ const Moneycapuchino = () => {
   const Cappuccino = {
     uri: 'https://coffeeaffection.com/wp-content/uploads/2021/02/does-a-cappuccino-have-caffeine.jpg',
   };
-  const back = {
-    uri: 'https://cdn.icon-icons.com/icons2/1339/PNG/512/thinarrowpointingleft_87489.png',
-  };
   const QR = {
     uri: 'https://img2.pic.in.th/pic/S__30212103.jpeg',
   };
 
   return (
     <View style={styles.container}>
-      <Image source={back} style={styles.backimage}/>
       <Image source={Cappuccino} style={styles.Cappuccinoimage}/>
       <View style={styles.textBox}>
         <Text style={styles.text}>Cappuccino</Text>
@@ -45,13 +41,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     width:400,
-  },
-  backimage: {
-    width: 30, // กำหนดความกว้างของรูปภาพ
-    height: 20, // กำหนดความสูงของรูปภาพ
-    margin: -10,
-    right : 160,
-    top: -80,
   },
   Cappuccinoimage: {
     width: 290, // กำหนดความกว้างของรูปภาพ

@@ -12,13 +12,9 @@ export default function App() {
   const Cold = {
     uri: 'https://static.thenounproject.com/png/1184671-200.png',
   };
-  const back = {
-    uri: 'https://cdn.icon-icons.com/icons2/1339/PNG/512/thinarrowpointingleft_87489.png',
-  };
 
   return (
     <View style={styles.container}>
-      <Image source={back} style={styles.backimage}/>
       <Image source={Mocca} style={styles.Moccaimage}/>
       <View style={styles.textBox}>
         <Text style={styles.text}>Mocca</Text>
@@ -67,13 +63,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     width:400,
-  },
-  backimage: {
-    width: 30, // กำหนดความกว้างของรูปภาพ
-    height: 20, // กำหนดความสูงของรูปภาพ
-    margin: -10,
-    right : 160,
-    top: 15,
   },
   Moccaimage: {
     width: 290, // กำหนดความกว้างของรูปภาพ

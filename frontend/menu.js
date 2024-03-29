@@ -101,7 +101,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEE8DC',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
     width: 400,
   },
   menuTitle: {
