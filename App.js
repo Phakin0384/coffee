@@ -25,9 +25,9 @@ function App() {
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }}/>
         <Stack.Screen name="Menu" component={Menu} />
         <Stack.Screen name="BuyMocca" component={Buymocca} />
-        <Stack.Screen name="BuyAmaricano" component={Buyamaricano} />
+        <Stack.Screen name="BuyAmericano" component={Buyamaricano} />
         <Stack.Screen name="BuyEspresso" component={Buyespresso} />
-        <Stack.Screen name="BuyCapuchino" component={Buycapuchino} />
+        <Stack.Screen name="BuyCappuccino" component={Buycapuchino} />
         <Stack.Screen name="BuyLatte" component={BuyLatte} />
         <Stack.Screen name="MOCCA" component={Moneymocca} />
         <Stack.Screen name="AMARICANO" component={Moneyamaricano} />
