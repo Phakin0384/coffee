@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const Moneycapuchino = () => {
     const navigation = useNavigation();
-    const [name, setName] = useState('');
-
     const handleTap = () => {
-        navigation.navigate('Moneycapuchino');
+        navigation.navigate('Home');
       };
 
 //export default function App() {
@@ -29,9 +27,10 @@ const Moneycapuchino = () => {
         <View style={styles.BATHtext}>
           <Text style={styles.text}>ราคา 50 BATH</Text>
         </View>
-        <View style={styles.textTHX}>
-        <Text style={styles.text}>THANK YOU</Text>
-        </View>
+        <Image source={QR} style={styles.QRimage}/>
+            <TouchableOpacity style={styles.textTHX} onPress={handleTap}>
+                <Text style={styles.text}>THANK YOU</Text>
+            </TouchableOpacity>
     </View>
   );
 }
