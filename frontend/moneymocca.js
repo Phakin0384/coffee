@@ -10,16 +10,16 @@ const Moneymocca = () => {
       prices: navigation.setParams('price')
     }
       navigation.navigate('Home');
-      axios.post("http://10.64.40.137:5000/bill", data ,{ timeout: 10000 })
-  .then(response => {
-    console.log(response.data); // Log response for debugging
-    navigation.navigate('Home');
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('Error occurred while processing your order. Please try again later.');
-  });
-    };
+  //     axios.post("http://10.64.40.137:5000/bill", data ,{ timeout: 10000 })
+  // .then(response => {
+  //   console.log(response.data);
+  //   navigation.navigate('Home');
+  // })
+  // .catch(error => {
+  //   console.error('Error:', error);
+  //   alert('Error occurred while processing your order. Please try again later.');
+  // });
+     };
 
     const Mocca = {
         uri: 'https://www.everyday-delicious.com/wp-content/uploads/2021/05/caffee-mocha-kawa-mokka-everyday-delicious-1-1197x1800.jpg',
@@ -35,11 +35,10 @@ const Moneymocca = () => {
         <Text style={styles.text}>Mocca</Text>
         </View>
         
-        <Image source={QR} style={styles.QRiamge}/>
+        <Image source={QR} style={styles.QRimage}/>
         <View style={styles.BATHtext}>
           <Text style={styles.text}>ราคา 50 BATH</Text>
         </View>
-        <Image source={QR} style={styles.QRimage}/>
             <TouchableOpacity style={styles.textTHX} onPress={handleTap}>
                 <Text style={styles.text}>THANK YOU</Text>
             </TouchableOpacity>
@@ -88,7 +87,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 20, // กำหนดขนาดของตัวอักษร
   },
-  QRiamge: {
+  QRimage: {
     width: 150, // กำหนดความกว้างของรูปภาพ
     height: 150, // กำหนดความสูงของรูปภาพ
     right : 0,

@@ -32,15 +32,15 @@ export default function App() {
       temp: temperature
     }
     navigation.navigate('MOCCA',{ price: 50 });
-    axios.post("http://10.64.40.137:5000/bill", data )
-      .then(response => {
-        console.log(response.data); // Log response for debugging
-        navigation.navigate('MOCCA');
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // alert('Error occurred while processing your order. Please try again later.');
-      });
+    // axios.post("http://10.64.40.137:5000/bill", data )
+    //   .then(response => {
+    //     console.log(response.data); // Log response for debugging
+    //     navigation.navigate('MOCCA');
+    //   })
+    //   .catch(error => {
+    //     console.error('Error:', error);
+    //     alert('Error occurred while processing your order. Please try again later.');
+    //   });
   }
 
   return (
