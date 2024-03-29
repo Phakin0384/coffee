@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Dimensions, Image, TouchableOpacity, TouchableOpacityBase } from 'react-native';
+import { StyleSheet, Text, View,Image, TouchableOpacity} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 export default function App() {
   const Mocca = {
@@ -24,10 +24,23 @@ export default function App() {
   const handleTemperatureSelection = (type) => {
     setTemperature(type);
   };
-  
+
   const navigation = useNavigation();
   const handleMenuPress = (textselectcoreect) =>{
+    const data ={
+      sweet: sweetness,
+      temp: temperature
+    }
     navigation.navigate('MOCCA');
+    axios.post("http://10.64.40.137:5000/bill", data)
+      .then(response => {
+        console.log(response.data); // Log response for debugging
+        navigation.navigate('MOCCA');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error occurred while processing your order. Please try again later.');
+      });
   }
 
   return (
