@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function App() {
   useEffect(() => {
-    axios.get('http://localhost:5000/api/menu')
+    axios.get('mongodb+srv://Phakin1824:Geng_100104@cluster0.pzjda8i.mongodb.net/')
       .then(response => {
         console.log(response.data); // Menu data received from the backend
       })
