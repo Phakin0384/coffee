@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getProducts } from './api/client';
 import { MENU as FALLBACK_MENU } from './data/menu';
 import { colors, radius } from './theme';
+import { serif } from './fonts';
 
 // The menu is loaded live from the backend so staff can add or hide drinks
 // from the admin page without shipping a new app build. If the server can't be
@@ -44,13 +45,14 @@ export default function Menu() {
       <StatusBar style="auto" />
 
       <View style={styles.header}>
+        <Text style={styles.eyebrow}>CHOOSE YOUR COFFEE</Text>
         <Text style={styles.title}>เมนู</Text>
-        <Text style={styles.subtitle}>กดเพื่อเลือกเมนู · ORDER YOUR COFFEE</Text>
+        <Text style={styles.subtitle}>กดเพื่อเลือกเมนู</Text>
       </View>
 
       {status === 'loading' ? (
         <View style={styles.centre}>
-          <ActivityIndicator size="large" color={colors.text} />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.hint}>กำลังโหลดเมนู… · Loading menu…</Text>
         </View>
       ) : (
@@ -63,11 +65,16 @@ export default function Menu() {
           {items.map((drink) => (
             <TouchableOpacity
               key={drink.id}
-              style={styles.item}
+              style={styles.card}
+              activeOpacity={0.85}
               onPress={() => navigation.navigate('Buy', { product: drink })}
             >
-              <Image source={{ uri: drink.image }} style={styles.itemImage} />
-              <Text style={styles.itemText}>{drink.name}</Text>
+              <Image source={{ uri: drink.image }} style={styles.cardImage} />
+              <View style={styles.cardBody}>
+                <Text style={styles.cardName}>{drink.name}</Text>
+                {!!drink.nameThai && <Text style={styles.cardThai}>{drink.nameThai}</Text>}
+              </View>
+              <Text style={styles.cardPrice}>฿{drink.price}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -83,18 +90,26 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 28,
     paddingBottom: 12,
   },
+  eyebrow: {
+    fontSize: 12,
+    letterSpacing: 3,
+    color: colors.accent,
+    fontWeight: '600',
+  },
   title: {
+    fontFamily: serif,
     fontSize: 40,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: colors.text,
+    marginTop: 2,
   },
   subtitle: {
     fontSize: 14,
-    color: colors.text,
-    marginTop: 4,
+    color: colors.dim,
+    marginTop: 2,
   },
   centre: {
     flex: 1,
@@ -103,13 +118,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   hint: {
-    color: colors.text,
+    color: colors.dim,
     fontSize: 14,
   },
   list: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 24,
-    gap: 16,
+    gap: 14,
   },
   offline: {
     backgroundColor: colors.thanks,
@@ -122,29 +137,38 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 13,
   },
-  item: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 16,
-  },
-  itemImage: {
-    width: 70,
-    height: 90,
-    borderRadius: 6,
     backgroundColor: colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 12,
   },
-  itemText: {
-    fontSize: 20,
+  cardImage: {
+    width: 68,
+    height: 84,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceAlt,
+  },
+  cardBody: {
+    flex: 1,
+  },
+  cardName: {
+    fontFamily: serif,
+    fontSize: 22,
     color: colors.text,
-    borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: radius,
-    overflow: 'hidden',
-    paddingHorizontal: 20,
-    paddingVertical: 6,
-    minWidth: 140,
-    textAlign: 'center',
+  },
+  cardThai: {
+    fontSize: 14,
+    color: colors.dim,
+    marginTop: 2,
+  },
+  cardPrice: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.accent,
   },
 });
