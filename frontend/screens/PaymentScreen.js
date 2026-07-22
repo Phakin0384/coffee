@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'rea
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getDrink, QR_IMAGE } from '../data/menu';
 import { colors, radius } from '../theme';
+import { serif } from '../fonts';
 
 // One payment screen for every drink. Order details arrive via route params;
 // the product object is forwarded from the Buy screen (falls back to a legacy
@@ -18,17 +19,20 @@ export default function PaymentScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {drink && <Image source={{ uri: drink.image }} style={styles.drinkImage} />}
+      <Text style={styles.eyebrow}>สแกนเพื่อจ่าย · SCAN TO PAY</Text>
+      <Text style={styles.name}>{drink ? drink.name : 'Order'}</Text>
 
-      <View style={styles.namePill}>
-        <Text style={styles.name}>{drink ? drink.name : 'Order'}</Text>
+      <View style={styles.qrCard}>
+        <Image source={{ uri: QR_IMAGE }} style={styles.qr} />
       </View>
 
-      <Image source={{ uri: QR_IMAGE }} style={styles.qr} />
-      <Text style={styles.price}>ราคา {amount} บาท</Text>
+      <View style={styles.priceRow}>
+        <Text style={styles.priceLabel}>ราคา · Total</Text>
+        <Text style={styles.price}>฿{amount}</Text>
+      </View>
 
       <TouchableOpacity style={styles.thanks} onPress={handleDone}>
-        <Text style={styles.text}>THANK YOU</Text>
+        <Text style={styles.thanksText}>ขอบคุณค่ะ · THANK YOU</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -39,45 +43,61 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: colors.background,
     alignItems: 'center',
-    paddingVertical: 24,
+    justifyContent: 'center',
+    paddingVertical: 32,
     paddingHorizontal: 16,
-    gap: 16,
+    gap: 14,
   },
-  drinkImage: {
-    width: 260,
-    height: 320,
-    borderRadius: radius,
-  },
-  namePill: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    paddingHorizontal: 80,
-    paddingVertical: 8,
-    borderRadius: radius,
-    backgroundColor: colors.surface,
+  eyebrow: {
+    fontSize: 12,
+    letterSpacing: 3,
+    color: colors.accent,
+    fontWeight: '600',
   },
   name: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: serif,
+    fontSize: 30,
+    color: colors.text,
+  },
+  qrCard: {
+    backgroundColor: colors.surface,
+    padding: 18,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.line,
+    marginTop: 6,
   },
   qr: {
-    width: 150,
-    height: 150,
-    borderRadius: radius,
+    width: 190,
+    height: 190,
+    borderRadius: 10,
+  },
+  priceRow: {
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  priceLabel: {
+    fontSize: 12,
+    letterSpacing: 2,
+    color: colors.dim,
   },
   price: {
-    fontSize: 20,
+    fontFamily: serif,
+    fontSize: 36,
+    color: colors.accent,
+    fontWeight: '700',
   },
   thanks: {
-    marginTop: 8,
-    borderWidth: 2,
-    borderColor: colors.border,
-    paddingHorizontal: 60,
-    paddingVertical: 12,
+    marginTop: 16,
+    paddingHorizontal: 48,
+    paddingVertical: 16,
     borderRadius: radius,
-    backgroundColor: colors.thanks,
+    backgroundColor: colors.accent,
   },
-  text: {
-    fontSize: 18,
+  thanksText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.onAccent,
+    letterSpacing: 1,
   },
 });

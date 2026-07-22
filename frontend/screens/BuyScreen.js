@@ -13,6 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { getDrink, HOT_ICON, COLD_ICON, SWEETNESS_LEVELS } from '../data/menu';
 import { createOrder } from '../api/client';
 import { colors, radius } from '../theme';
+import { serif } from '../fonts';
 
 // One screen for every drink. The chosen product is passed from the menu as a
 // route param (it comes from the live /products API); we fall back to the
@@ -28,8 +29,8 @@ export default function BuyScreen() {
 
   if (!drink) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.text}>Sorry, that drink is not on the menu.</Text>
+      <View style={[styles.container, styles.centre]}>
+        <Text style={styles.optionText}>Sorry, that drink is not on the menu.</Text>
       </View>
     );
   }
@@ -64,46 +65,48 @@ export default function BuyScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Image source={{ uri: drink.image }} style={styles.drinkImage} />
 
-      <View style={styles.namePill}>
-        <Text style={styles.name}>{drink.name}</Text>
-      </View>
+      <Text style={styles.name}>{drink.name}</Text>
+      <Text style={styles.price}>฿{drink.price}</Text>
 
       {needsSweetness && (
         <>
-          <View style={styles.sweetHeader}>
-            <Text style={styles.text}>ระดับความหวาน</Text>
-          </View>
+          <Text style={styles.sectionLabel}>ระดับความหวาน · SWEETNESS</Text>
           <View style={styles.optionRow}>
-            {SWEETNESS_LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level}
-                style={[styles.pill, sweetness === level && styles.pillSelected]}
-                onPress={() => setSweetness(level)}
-              >
-                <Text style={styles.text}>{level} %</Text>
-              </TouchableOpacity>
-            ))}
+            {SWEETNESS_LEVELS.map((level) => {
+              const on = sweetness === level;
+              return (
+                <TouchableOpacity
+                  key={level}
+                  style={[styles.pill, on && styles.pillSelected]}
+                  onPress={() => setSweetness(level)}
+                >
+                  <Text style={[styles.optionText, on && styles.onDark]}>{level}%</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </>
       )}
 
-      <View style={styles.sweetHeader}>
-        <Text style={styles.text}>อุณหภูมิ</Text>
-      </View>
+      <Text style={styles.sectionLabel}>อุณหภูมิ · TEMPERATURE</Text>
       <View style={styles.optionRow}>
         <TouchableOpacity
-          style={[styles.tempOption, temperature === 'hot' && styles.pillSelected]}
+          style={[styles.tempOption, temperature === 'hot' && styles.tempHot]}
           onPress={() => setTemperature('hot')}
         >
           <Image source={{ uri: HOT_ICON }} style={styles.tempIcon} />
-          <Text style={styles.text}>ร้อน</Text>
+          <Text style={[styles.optionText, temperature === 'hot' && styles.onDark]}>
+            ร้อน · Hot
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tempOption, temperature === 'cold' && styles.pillSelected]}
+          style={[styles.tempOption, temperature === 'cold' && styles.tempCold]}
           onPress={() => setTemperature('cold')}
         >
           <Image source={{ uri: COLD_ICON }} style={styles.tempIcon} />
-          <Text style={styles.text}>เย็น</Text>
+          <Text style={[styles.optionText, temperature === 'cold' && styles.onDark]}>
+            เย็น · Cold
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -113,9 +116,9 @@ export default function BuyScreen() {
         disabled={!canConfirm || submitting}
       >
         {submitting ? (
-          <ActivityIndicator color={colors.text} />
+          <ActivityIndicator color={colors.onAccent} />
         ) : (
-          <Text style={styles.text}>ยืนยันคำสั่งซื้อ</Text>
+          <Text style={styles.confirmText}>ยืนยันคำสั่งซื้อ · Confirm</Text>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -129,78 +132,99 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 24,
     paddingHorizontal: 16,
-    gap: 16,
+    gap: 12,
+  },
+  centre: {
+    justifyContent: 'center',
   },
   drinkImage: {
-    width: 260,
-    height: 320,
+    width: 240,
+    height: 288,
     borderRadius: radius,
-  },
-  namePill: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    paddingHorizontal: 80,
-    paddingVertical: 8,
-    borderRadius: radius,
-    backgroundColor: colors.surface,
   },
   name: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: serif,
+    fontSize: 30,
+    color: colors.text,
+    marginTop: 4,
   },
-  sweetHeader: {
-    paddingHorizontal: 30,
-    paddingVertical: 6,
-    borderRadius: radius,
-    backgroundColor: colors.sweetHeader,
+  price: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.accent,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    letterSpacing: 2,
+    color: colors.dim,
+    marginTop: 10,
   },
   optionRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 12,
+    gap: 10,
   },
   pill: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: colors.line,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     borderRadius: radius,
-    backgroundColor: colors.pill,
+    backgroundColor: colors.surface,
   },
   pillSelected: {
     backgroundColor: colors.selected,
+    borderColor: colors.selected,
   },
   tempOption: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    borderWidth: 2,
-    borderColor: colors.border,
+    borderWidth: 1,
+    borderColor: colors.line,
     paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: radius,
-    backgroundColor: colors.pill,
+    backgroundColor: colors.surface,
+  },
+  tempHot: {
+    backgroundColor: colors.hot,
+    borderColor: colors.hot,
+  },
+  tempCold: {
+    backgroundColor: colors.cold,
+    borderColor: colors.cold,
   },
   tempIcon: {
-    width: 24,
-    height: 30,
+    width: 22,
+    height: 28,
     resizeMode: 'contain',
   },
+  optionText: {
+    fontSize: 17,
+    color: colors.text,
+  },
+  onDark: {
+    color: colors.onTemp,
+    fontWeight: '600',
+  },
   confirm: {
-    marginTop: 8,
-    borderWidth: 2,
-    borderColor: colors.border,
+    marginTop: 18,
     paddingHorizontal: 40,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderRadius: radius,
     backgroundColor: colors.confirm,
+    minWidth: 240,
+    alignItems: 'center',
   },
   confirmDisabled: {
     backgroundColor: colors.confirmDisabled,
-    opacity: 0.6,
   },
-  text: {
-    fontSize: 18,
+  confirmText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.onAccent,
+    letterSpacing: 0.5,
   },
 });
