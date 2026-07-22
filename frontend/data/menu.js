@@ -1,5 +1,6 @@
-// Single source of truth for the coffee menu. Adding a drink or changing a price
-// is now a one-line edit here instead of creating/editing a pair of screens.
+// The live menu comes from the backend /products API (managed via the admin
+// page). The MENU list below is a built-in OFFLINE FALLBACK so the machine can
+// still serve if it briefly can't reach the server on startup.
 
 export const HOT_ICON = 'https://www.freeiconspng.com/uploads/black-flame-icon-png-24.png';
 export const COLD_ICON = 'https://static.thenounproject.com/png/1184671-200.png';

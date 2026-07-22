@@ -4,12 +4,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { getDrink, QR_IMAGE } from '../data/menu';
 import { colors, radius } from '../theme';
 
-// One payment screen for every drink. Order details arrive via route params.
+// One payment screen for every drink. Order details arrive via route params;
+// the product object is forwarded from the Buy screen (falls back to a legacy
+// drinkId lookup).
 export default function PaymentScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { drinkId, price } = route.params ?? {};
-  const drink = getDrink(drinkId);
+  const { product, drinkId, price } = route.params ?? {};
+  const drink = product ?? getDrink(drinkId);
   const amount = price ?? drink?.price ?? 0;
 
   const handleDone = () => navigation.popToTop();

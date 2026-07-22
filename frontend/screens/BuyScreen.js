@@ -14,12 +14,13 @@ import { getDrink, HOT_ICON, COLD_ICON, SWEETNESS_LEVELS } from '../data/menu';
 import { createOrder } from '../api/client';
 import { colors, radius } from '../theme';
 
-// One screen for every drink. The specific drink is chosen by the `drinkId`
-// route param passed from the menu.
+// One screen for every drink. The chosen product is passed from the menu as a
+// route param (it comes from the live /products API); we fall back to the
+// static lookup if only a legacy drinkId was passed.
 export default function BuyScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const drink = getDrink(route.params?.drinkId);
+  const drink = route.params?.product ?? getDrink(route.params?.drinkId);
 
   const [sweetness, setSweetness] = useState(null);
   const [temperature, setTemperature] = useState(null);
@@ -48,7 +49,7 @@ export default function BuyScreen() {
     setSubmitting(true);
     try {
       await createOrder(order);
-      navigation.navigate('Payment', { drinkId: drink.id, ...order });
+      navigation.navigate('Payment', { product: drink, ...order });
     } catch (err) {
       const message =
         err.response?.data?.error ||

@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CREMA · Product Admin</title>
+<style>
+  :root{
+    --ground:#F3ECE0; --panel:#FFFDF8; --line:#E4D8C4; --line-strong:#D3C2A6;
+    --ink:#2A1C12; --dim:#6E5A47; --crema:#B4762A; --crema-ink:#8A5A1E;
+    --danger:#B23A2E; --ok:#3E7A44; --shadow:rgba(41,27,17,.14);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ground:#17100B; --panel:#251A13; --line:#3A2B1E;
+      --line-strong:#4A3626; --ink:#F5ECDD; --dim:#C3B29C; --crema:#E0A85D; --crema-ink:#E0A85D;
+      --danger:#E4796B; --ok:#7FB985; --shadow:rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif; line-height:1.45;
+  }
+  a{color:var(--crema-ink)}
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    padding:1rem 1.5rem; border-bottom:1px solid var(--line); background:var(--panel);
+    position:sticky; top:0; z-index:5;
+  }
+  .brand{display:flex; align-items:baseline; gap:.5rem}
+  .brand b{font-family:Georgia,serif; font-size:1.4rem}
+  .brand span{font-size:.7rem; letter-spacing:.24em; text-transform:uppercase; color:var(--crema)}
+  main{max-width:1000px; margin:0 auto; padding:1.5rem}
+  .muted{color:var(--dim)}
+  .btn{
+    font:inherit; cursor:pointer; border:1px solid var(--line-strong); background:var(--panel);
+    color:var(--ink); border-radius:.55rem; padding:.55rem .9rem; transition:.15s;
+  }
+  .btn:hover{border-color:var(--crema)}
+  .btn:focus-visible{outline:2px solid var(--crema); outline-offset:2px}
+  .btn.primary{background:var(--crema); border-color:var(--crema); color:#1c130b; font-weight:600}
+  .btn.primary:hover{filter:brightness(1.05)}
+  .btn.danger{color:var(--danger); border-color:var(--line-strong)}
+  .btn.danger:hover{border-color:var(--danger)}
+  .btn.small{padding:.35rem .6rem; font-size:.85rem}
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+
+  /* Login gate */
+  #gate{max-width:420px; margin:12vh auto; padding:2rem; background:var(--panel);
+    border:1px solid var(--line); border-radius:1rem; box-shadow:0 20px 50px -30px var(--shadow)}
+  #gate h1{font-family:Georgia,serif; margin:.2rem 0 .2rem}
+  .row{display:flex; flex-direction:column; gap:.35rem; margin-bottom:1rem}
+  label{font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim)}
+  input[type=text],input[type=password],input[type=number],textarea{
+    font:inherit; padding:.6rem .7rem; border:1px solid var(--line-strong);
+    border-radius:.55rem; background:var(--ground); color:var(--ink); width:100%;
+  }
+  input:focus,textarea:focus{outline:2px solid var(--crema); outline-offset:1px; border-color:var(--crema)}
+  .hidden{display:none !important}
+
+  /* Table */
+  .toolbar{display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; flex-wrap:wrap}
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:.8rem; background:var(--panel)}
+  table{border-collapse:collapse; width:100%; min-width:640px}
+  th,td{text-align:left; padding:.7rem .8rem; border-bottom:1px solid var(--line)}
+  th{font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--dim)}
+  tbody tr:last-child td{border-bottom:none}
+  td.num{font-variant-numeric:tabular-nums; text-align:right}
+  .thumb{width:46px; height:46px; border-radius:.4rem; object-fit:cover; background:var(--ground); border:1px solid var(--line)}
+  .pill{font-size:.72rem; padding:.2rem .55rem; border-radius:999px; border:1px solid var(--line-strong); color:var(--dim)}
+  .pill.on{color:var(--ok); border-color:var(--ok)}
+  .pill.off{color:var(--danger); border-color:var(--danger)}
+  .actions{display:flex; gap:.4rem; justify-content:flex-end}
+
+  /* Editor drawer */
+  #overlay{position:fixed; inset:0; background:rgba(0,0,0,.4); display:grid; place-items:center; padding:1rem; z-index:20}
+  #editor{width:min(560px,96vw); max-height:92vh; overflow:auto; background:var(--panel);
+    border:1px solid var(--line); border-radius:1rem; padding:1.4rem; box-shadow:0 30px 70px -30px var(--shadow)}
+  #editor h2{font-family:Georgia,serif; margin:.1rem 0 1rem}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
+  .check{display:flex; align-items:center; gap:.5rem; margin:.2rem 0}
+  .check input{width:auto}
+  .previewrow{display:flex; align-items:center; gap:1rem; margin-top:.4rem}
+  .previewrow img{width:64px; height:64px; border-radius:.5rem; object-fit:cover; border:1px solid var(--line); background:var(--ground)}
+  .editor-actions{display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.4rem}
+  .toast{position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:var(--ground); padding:.7rem 1.1rem; border-radius:.6rem; z-index:40;
+    box-shadow:0 12px 30px -12px var(--shadow); opacity:0; transition:opacity .2s; pointer-events:none}
+  .toast.show{opacity:1}
+  .toast.err{background:var(--danger); color:#fff}
+  .err-inline{color:var(--danger); font-size:.85rem; min-height:1.1em}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="gate">
+  <div class="brand"><b>CREMA</b> <span>Admin</span></div>
+  <h1>Product manager</h1>
+  <p class="muted" style="margin-top:0">Enter the admin passcode to manage the menu shown on the coffee machine.</p>
+  <div class="row">
+    <label for="token">Admin passcode</label>
+    <input type="password" id="token" autocomplete="current-password" placeholder="ADMIN_TOKEN from your .env" />
+  </div>
+  <div class="err-inline" id="gateErr"></div>
+  <button class="btn primary" id="unlock" style="width:100%">Unlock</button>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header>
+    <div class="brand"><b>CREMA</b> <span>Product Admin</span></div>
+    <div style="display:flex; gap:.6rem; align-items:center">
+      <span class="muted" id="count"></span>
+      <button class="btn small" id="refresh">Refresh</button>
+      <button class="btn small" id="lock">Lock</button>
+    </div>
+  </header>
+  <main>
+    <div class="toolbar">
+      <div>
+        <h2 style="margin:.2rem 0; font-family:Georgia,serif">Menu products</h2>
+        <div class="muted" style="font-size:.9rem">Changes appear on the kiosk the next time it loads the menu.</div>
+      </div>
+      <button class="btn primary" id="addBtn">+ Add product</button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th><th>Name</th><th>Price</th><th>Sweetness</th><th>Status</th><th class="num">Order</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="muted" id="empty" style="text-align:center; padding:2rem; display:none">No products yet — add your first drink.</p>
+  </main>
+</div>
+
+<!-- EDITOR -->
+<div id="overlay" class="hidden">
+  <form id="editor">
+    <h2 id="editorTitle">Add product</h2>
+    <input type="hidden" id="f_id" />
+    <div class="grid2">
+      <div class="row"><label for="f_name">Name *</label><input type="text" id="f_name" required /></div>
+      <div class="row"><label for="f_nameThai">Thai name</label><input type="text" id="f_nameThai" /></div>
+      <div class="row"><label for="f_price">Price (฿) *</label><input type="number" id="f_price" min="0" step="1" required /></div>
+      <div class="row"><label for="f_sortOrder">Sort order</label><input type="number" id="f_sortOrder" step="1" /></div>
+    </div>
+    <div class="row"><label for="f_image">Image URL</label><input type="text" id="f_image" placeholder="https://…" /></div>
+    <div class="previewrow">
+      <img id="f_preview" alt="" />
+      <div class="muted" style="font-size:.85rem">Paste an image URL to preview it here.</div>
+    </div>
+    <div style="display:flex; gap:1.5rem; margin-top:.9rem">
+      <label class="check"><input type="checkbox" id="f_hasSweetness" checked /> Has sweetness options</label>
+      <label class="check"><input type="checkbox" id="f_available" checked /> Available on menu</label>
+    </div>
+    <div class="err-inline" id="editorErr"></div>
+    <div class="editor-actions">
+      <button type="button" class="btn" id="cancelBtn">Cancel</button>
+      <button type="submit" class="btn primary" id="saveBtn">Save</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var TOKEN = sessionStorage.getItem("adminToken") || "";
+  var products = [];
+
+  var $ = function(id){ return document.getElementById(id); };
+  function headers(){ return { "Content-Type":"application/json", "X-Admin-Token": TOKEN }; }
+  function baht(n){ return "฿" + n; }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  function toast(msg, isErr){
+    var t=$("toast"); t.textContent=msg; t.className="toast show"+(isErr?" err":"");
+    setTimeout(function(){ t.className="toast"; }, 2600);
+  }
+
+  // ---- Auth ----
+  function showApp(){ $("gate").classList.add("hidden"); $("app").classList.remove("hidden"); load(); }
+  function showGate(msg){
+    $("app").classList.add("hidden"); $("gate").classList.remove("hidden");
+    $("gateErr").textContent = msg||"";
+  }
+  async function unlock(){
+    TOKEN = $("token").value.trim();
+    if(!TOKEN){ $("gateErr").textContent="Enter the passcode."; return; }
+    // Validate by requesting the admin-only full list.
+    try{
+      var r = await fetch("/products?all=1", { headers: headers() });
+      if(r.status===401){ $("gateErr").textContent="Wrong passcode."; return; }
+      if(r.status===503){ $("gateErr").textContent="Admin is not configured on the server (ADMIN_TOKEN unset)."; return; }
+      if(!r.ok){ $("gateErr").textContent="Server error ("+r.status+")."; return; }
+      sessionStorage.setItem("adminToken", TOKEN);
+      products = await r.json();
+      showApp();
+    }catch(e){ $("gateErr").textContent="Cannot reach the server."; }
+  }
+  function lock(){ sessionStorage.removeItem("adminToken"); TOKEN=""; $("token").value=""; showGate(""); }
+
+  // ---- Data ----
+  async function load(){
+    try{
+      var r = await fetch("/products?all=1", { headers: headers() });
+      if(r.status===401){ return showGate("Session expired — sign in again."); }
+      products = await r.json();
+      render();
+    }catch(e){ toast("Could not load products.", true); }
+  }
+
+  function render(){
+    var rows = $("rows"); rows.innerHTML="";
+    products.sort(function(a,b){ return (a.sortOrder-b.sortOrder) || a.name.localeCompare(b.name); });
+    $("count").textContent = products.length + " product" + (products.length===1?"":"s");
+    $("empty").style.display = products.length ? "none" : "block";
+    products.forEach(function(p){
+      var tr=document.createElement("tr");
+      tr.innerHTML =
+        '<td><img class="thumb" src="'+esc(p.image)+'" alt="" onerror="this.style.visibility=\'hidden\'"></td>'+
+        '<td><strong>'+esc(p.name)+'</strong><div class="muted" style="font-size:.85rem">'+esc(p.nameThai||"")+' · '+esc(p._id)+'</div></td>'+
+        '<td class="num">'+baht(p.price)+'</td>'+
+        '<td>'+(p.hasSweetness?'<span class="pill">adjustable</span>':'<span class="pill">none</span>')+'</td>'+
+        '<td><button class="pill '+(p.available?'on':'off')+'" data-toggle="'+esc(p._id)+'">'+(p.available?'On menu':'Hidden')+'</button></td>'+
+        '<td class="num">'+p.sortOrder+'</td>'+
+        '<td class="actions">'+
+          '<button class="btn small" data-edit="'+esc(p._id)+'">Edit</button>'+
+          '<button class="btn small danger" data-del="'+esc(p._id)+'">Delete</button>'+
+        '</td>';
+      rows.appendChild(tr);
+    });
+  }
+
+  // ---- Editor ----
+  function openEditor(p){
+    $("editorErr").textContent="";
+    $("editorTitle").textContent = p ? ("Edit · "+p.name) : "Add product";
+    $("f_id").value = p ? p._id : "";
+    $("f_name").value = p ? p.name : "";
+    $("f_nameThai").value = p ? (p.nameThai||"") : "";
+    $("f_price").value = p ? p.price : "";
+    $("f_sortOrder").value = p ? p.sortOrder : "";
+    $("f_image").value = p ? (p.image||"") : "";
+    $("f_hasSweetness").checked = p ? !!p.hasSweetness : true;
+    $("f_available").checked = p ? !!p.available : true;
+    updatePreview();
+    $("overlay").classList.remove("hidden");
+    $("f_name").focus();
+  }
+  function closeEditor(){ $("overlay").classList.add("hidden"); }
+  function updatePreview(){
+    var url=$("f_image").value.trim(); var img=$("f_preview");
+    if(url){ img.src=url; img.style.visibility="visible"; } else { img.removeAttribute("src"); img.style.visibility="hidden"; }
+  }
+
+  async function save(e){
+    e.preventDefault();
+    var id = $("f_id").value;
+    var price = parseFloat($("f_price").value);
+    if(!$("f_name").value.trim()){ $("editorErr").textContent="Name is required."; return; }
+    if(isNaN(price) || price<0){ $("editorErr").textContent="Enter a valid, non-negative price."; return; }
+    var payload = {
+      name: $("f_name").value.trim(),
+      nameThai: $("f_nameThai").value.trim(),
+      price: price,
+      image: $("f_image").value.trim(),
+      hasSweetness: $("f_hasSweetness").checked,
+      available: $("f_available").checked,
+    };
+    var so = parseInt($("f_sortOrder").value, 10);
+    if(!isNaN(so)) payload.sortOrder = so;
+
+    $("saveBtn").disabled=true;
+    try{
+      var r = id
+        ? await fetch("/products/"+encodeURIComponent(id), { method:"PUT", headers:headers(), body:JSON.stringify(payload) })
+        : await fetch("/products", { method:"POST", headers:headers(), body:JSON.stringify(payload) });
+      var body = await r.json();
+      if(!r.ok){ $("editorErr").textContent = body.error || ("Error "+r.status); return; }
+      toast(id ? "Product updated." : "Product added.");
+      closeEditor(); load();
+    }catch(err){ $("editorErr").textContent="Could not reach the server."; }
+    finally{ $("saveBtn").disabled=false; }
+  }
+
+  async function toggleAvailable(id){
+    var p = products.find(function(x){ return x._id===id; }); if(!p) return;
+    try{
+      var r = await fetch("/products/"+encodeURIComponent(id), { method:"PUT", headers:headers(), body:JSON.stringify({ available: !p.available }) });
+      if(!r.ok){ toast("Update failed.", true); return; }
+      toast(!p.available ? "Shown on menu." : "Hidden from menu.");
+      load();
+    }catch(e){ toast("Could not reach the server.", true); }
+  }
+
+  async function del(id){
+    var p = products.find(function(x){ return x._id===id; });
+    if(!confirm('Delete "'+(p?p.name:id)+'"? This cannot be undone.')) return;
+    try{
+      var r = await fetch("/products/"+encodeURIComponent(id), { method:"DELETE", headers:headers() });
+      if(!r.ok){ toast("Delete failed.", true); return; }
+      toast("Product deleted.");
+      load();
+    }catch(e){ toast("Could not reach the server.", true); }
+  }
+
+  // ---- Events ----
+  $("unlock").addEventListener("click", unlock);
+  $("token").addEventListener("keydown", function(e){ if(e.key==="Enter") unlock(); });
+  $("lock").addEventListener("click", lock);
+  $("refresh").addEventListener("click", load);
+  $("addBtn").addEventListener("click", function(){ openEditor(null); });
+  $("cancelBtn").addEventListener("click", closeEditor);
+  $("editor").addEventListener("submit", save);
+  $("f_image").addEventListener("input", updatePreview);
+  $("overlay").addEventListener("click", function(e){ if(e.target===$("overlay")) closeEditor(); });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeEditor(); });
+  $("rows").addEventListener("click", function(e){
+    var t=e.target;
+    if(t.dataset.edit) openEditor(products.find(function(x){ return x._id===t.dataset.edit; }));
+    else if(t.dataset.del) del(t.dataset.del);
+    else if(t.dataset.toggle) toggleAvailable(t.dataset.toggle);
+  });
+
+  // ---- Boot ----
+  if(TOKEN){ showApp(); } else { showGate(""); }
+})();
+</script>
+</body>
+</html>
