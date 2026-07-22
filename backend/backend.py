@@ -34,10 +34,12 @@ CORS(app, resources={r"/*": {"origins": origins}})
 # Fields required in a /bill request and the type each must be.
 REQUIRED_FIELDS = {
     "name": str,
-    "sweetness": (int, float),
     "price": (int, float),
     "temp": str,
 }
+
+# Valid temperature values.
+ALLOWED_TEMPS = {"hot", "cold"}
 
 
 def _next_order_id():
@@ -66,9 +68,20 @@ def _validate_order(data):
     if cleaned["price"] < 0:
         return None, "Field 'price' must be non-negative."
     cleaned["name"] = cleaned["name"].strip()
-    cleaned["temp"] = cleaned["temp"].strip()
+    cleaned["temp"] = cleaned["temp"].strip().lower()
     if not cleaned["name"]:
         return None, "Field 'name' must not be empty."
+    if cleaned["temp"] not in ALLOWED_TEMPS:
+        return None, "Field 'temp' must be one of: hot, cold."
+
+    # Sweetness is optional (some drinks, e.g. Americano, have no sweetness).
+    sweetness = data.get("sweetness")
+    if sweetness is not None and (
+        not isinstance(sweetness, (int, float)) or isinstance(sweetness, bool)
+    ):
+        return None, "Field 'sweetness' must be a number or null."
+    cleaned["sweetness"] = sweetness
+
     return cleaned, None
 
 
