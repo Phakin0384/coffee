@@ -1,0 +1,4 @@
+# Development / test dependencies. Install with:
+#   pip install -r requirements.txt -r requirements-dev.txt
+pytest>=8.0
+mongomock>=4.1

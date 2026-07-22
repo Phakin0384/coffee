@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const Home = () => {
@@ -12,19 +12,27 @@ const Home = () => {
 
   return (
     <TouchableOpacity style={styles.container} onPress={handleTap}>
-      <Image source={{ uri: 'https://img2.pic.in.th/pic/S__30203910.jpeg' }} style={styles.imageHome} />
-      <Image source={{ uri: 'https://static.vecteezy.com/system/resources/thumbnails/016/589/155/small_2x/hand-gestures-finger-and-sign-language-outline-icon-png.png' }} style={styles.imageHand} />
+      <Image
+        source={{ uri: 'https://img2.pic.in.th/pic/S__30203910.jpeg' }}
+        style={styles.imageHome}
+      />
+      <Image
+        source={{
+          uri: 'https://static.vecteezy.com/system/resources/thumbnails/016/589/155/small_2x/hand-gestures-finger-and-sign-language-outline-icon-png.png',
+        }}
+        style={styles.imageHand}
+      />
       <Text style={styles.text}>TAP TO BUY COFFEE</Text>
     </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor:'#FFFFFF',
+    backgroundColor: '#FFFFFF',
   },
   imageHome: {
     width: 300,
@@ -47,4 +55,3 @@ const styles = StyleSheet.create({
 });
 
 export default Home;
-

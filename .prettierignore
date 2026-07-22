@@ -1,0 +1,7 @@
+node_modules/
+backend/
+design/
+.expo/
+dist/
+web-build/
+package-lock.json

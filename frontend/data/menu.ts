@@ -1,3 +1,5 @@
+import type { Product } from '../types';
+
 // The live menu comes from the backend /products API (managed via the admin
 // page). The MENU list below is a built-in OFFLINE FALLBACK so the machine can
 // still serve if it briefly can't reach the server on startup.
@@ -6,12 +8,13 @@ export const HOT_ICON = 'https://www.freeiconspng.com/uploads/black-flame-icon-p
 export const COLD_ICON = 'https://static.thenounproject.com/png/1184671-200.png';
 export const QR_IMAGE = 'https://img5.pic.in.th/file/secure-sv1/S__30220303.jpeg';
 
-export const SWEETNESS_LEVELS = [25, 50, 75, 100];
+export const SWEETNESS_LEVELS: number[] = [25, 50, 75, 100];
 
-export const MENU = [
+export const MENU: Product[] = [
   {
     id: 'mocca',
     name: 'Mocca',
+    nameThai: 'มอคค่า',
     price: 50,
     hasSweetness: true,
     image:
@@ -20,14 +23,15 @@ export const MENU = [
   {
     id: 'americano',
     name: 'Americano',
+    nameThai: 'อเมริกาโน่',
     price: 50,
     hasSweetness: false,
-    image:
-      'https://www.acouplecooks.com/wp-content/uploads/2022/01/Iced-Americano-008s.jpg',
+    image: 'https://www.acouplecooks.com/wp-content/uploads/2022/01/Iced-Americano-008s.jpg',
   },
   {
     id: 'espresso',
     name: 'Espresso',
+    nameThai: 'เอสเพรสโซ่',
     price: 50,
     hasSweetness: true,
     image:
@@ -36,6 +40,7 @@ export const MENU = [
   {
     id: 'cappuccino',
     name: 'Cappuccino',
+    nameThai: 'คาปูชิโน่',
     price: 50,
     hasSweetness: true,
     image:
@@ -44,6 +49,7 @@ export const MENU = [
   {
     id: 'latte',
     name: 'Latte',
+    nameThai: 'ลาเต้',
     price: 50,
     hasSweetness: true,
     image:
@@ -51,4 +57,5 @@ export const MENU = [
   },
 ];
 
-export const getDrink = (id) => MENU.find((drink) => drink.id === id);
+export const getDrink = (id: string | undefined): Product | undefined =>
+  MENU.find((drink) => drink.id === id);

@@ -28,7 +28,7 @@ export default function Menu() {
       const products = await getProducts();
       setItems(products.length ? products : FALLBACK_MENU);
       setStatus('ready');
-    } catch (err) {
+    } catch {
       // Keep the machine usable offline rather than showing a dead screen.
       setItems(FALLBACK_MENU);
       setStatus('error');
@@ -57,9 +57,7 @@ export default function Menu() {
         <ScrollView contentContainerStyle={styles.list}>
           {status === 'error' && (
             <TouchableOpacity style={styles.offline} onPress={loadMenu}>
-              <Text style={styles.offlineText}>
-                ออฟไลน์ · Showing saved menu — tap to retry
-              </Text>
+              <Text style={styles.offlineText}>ออฟไลน์ · Showing saved menu — tap to retry</Text>
             </TouchableOpacity>
           )}
           {items.map((drink) => (

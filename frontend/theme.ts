@@ -11,6 +11,6 @@ export const colors = {
   confirm: '#E8FFC1',
   confirmDisabled: '#D6D6C2',
   thanks: '#E0C5B1',
-};
+} as const;
 
 export const radius = 20;

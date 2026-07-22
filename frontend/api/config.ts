@@ -8,18 +8,26 @@ import Constants from 'expo-constants';
 //   3. Fall back to localhost (fine for web or same-machine testing).
 const BACKEND_PORT = 5000;
 
-const EXPLICIT_URL = Constants.expoConfig?.extra?.apiUrl;
+// Older Expo runtimes expose the host in different places; describe them here
+// rather than reaching for `any`.
+const runtime = Constants as unknown as {
+  expoConfig?: { hostUri?: string; extra?: { apiUrl?: string } };
+  expoGoConfig?: { debuggerHost?: string };
+  manifest2?: { extra?: { expoClient?: { hostUri?: string } } };
+};
 
-function devHost() {
+const EXPLICIT_URL = runtime.expoConfig?.extra?.apiUrl;
+
+function devHost(): string | null {
   const hostUri =
-    Constants.expoConfig?.hostUri ||
-    Constants.expoGoConfig?.debuggerHost ||
-    Constants.manifest2?.extra?.expoClient?.hostUri;
+    runtime.expoConfig?.hostUri ||
+    runtime.expoGoConfig?.debuggerHost ||
+    runtime.manifest2?.extra?.expoClient?.hostUri;
   if (!hostUri) return null;
   return hostUri.split(':')[0];
 }
 
 const host = devHost();
 
-export const API_BASE_URL =
+export const API_BASE_URL: string =
   EXPLICIT_URL || (host ? `http://${host}:${BACKEND_PORT}` : `http://localhost:${BACKEND_PORT}`);
