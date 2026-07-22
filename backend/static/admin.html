@@ -73,6 +73,20 @@
   .pill.off{color:var(--danger); border-color:var(--danger)}
   .actions{display:flex; gap:.4rem; justify-content:flex-end}
 
+  /* Tabs */
+  nav.tabs{display:flex; gap:.25rem}
+  .tab{font:inherit; cursor:pointer; background:transparent; border:none; color:var(--dim);
+    padding:.5rem .9rem; border-radius:.5rem; font-size:.95rem}
+  .tab:hover{color:var(--ink)}
+  .tab.active{color:var(--ink); font-weight:600; box-shadow:inset 0 -2px 0 var(--crema)}
+  .tab:focus-visible{outline:2px solid var(--crema); outline-offset:2px}
+
+  /* Summary tiles */
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; margin-bottom:1.2rem}
+  .tile{background:var(--panel); border:1px solid var(--line); border-radius:.8rem; padding:1rem 1.2rem}
+  .tile .k{font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim)}
+  .tile .v{font-family:Georgia,serif; font-size:1.8rem; font-variant-numeric:tabular-nums; margin-top:.2rem}
+
   /* Editor drawer */
   #overlay{position:fixed; inset:0; background:rgba(0,0,0,.4); display:grid; place-items:center; padding:1rem; z-index:20}
   #editor{width:min(560px,96vw); max-height:92vh; overflow:auto; background:var(--panel);
@@ -110,32 +124,66 @@
 <!-- APP -->
 <div id="app" class="hidden">
   <header>
-    <div class="brand"><b>CREMA</b> <span>Product Admin</span></div>
+    <div class="brand"><b>CREMA</b> <span>Admin</span></div>
+    <nav class="tabs">
+      <button class="tab active" data-view="products" type="button">Products</button>
+      <button class="tab" data-view="history" type="button">Purchase history</button>
+    </nav>
     <div style="display:flex; gap:.6rem; align-items:center">
-      <span class="muted" id="count"></span>
       <button class="btn small" id="refresh">Refresh</button>
       <button class="btn small" id="lock">Lock</button>
     </div>
   </header>
   <main>
-    <div class="toolbar">
-      <div>
-        <h2 style="margin:.2rem 0; font-family:Georgia,serif">Menu products</h2>
-        <div class="muted" style="font-size:.9rem">Changes appear on the kiosk the next time it loads the menu.</div>
+    <!-- PRODUCTS -->
+    <section id="view-products">
+      <div class="toolbar">
+        <div>
+          <h2 style="margin:.2rem 0; font-family:Georgia,serif">Menu products</h2>
+          <div class="muted" style="font-size:.9rem">
+            <span id="count"></span> · Changes appear on the kiosk the next time it loads the menu.
+          </div>
+        </div>
+        <button class="btn primary" id="addBtn">+ Add product</button>
       </div>
-      <button class="btn primary" id="addBtn">+ Add product</button>
-    </div>
-    <div class="tablewrap">
-      <table>
-        <thead>
-          <tr>
-            <th></th><th>Name</th><th>Price</th><th>Sweetness</th><th>Status</th><th class="num">Order</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-    <p class="muted" id="empty" style="text-align:center; padding:2rem; display:none">No products yet — add your first drink.</p>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th><th>Name</th><th>Price</th><th>Sweetness</th><th>Status</th><th class="num">Order</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <p class="muted" id="empty" style="text-align:center; padding:2rem; display:none">No products yet — add your first drink.</p>
+    </section>
+
+    <!-- PURCHASE HISTORY -->
+    <section id="view-history" class="hidden">
+      <div class="toolbar">
+        <div>
+          <h2 style="margin:.2rem 0; font-family:Georgia,serif">Purchase history</h2>
+          <div class="muted" style="font-size:.9rem">Every order customers placed on the machine, newest first.</div>
+        </div>
+      </div>
+      <div class="tiles">
+        <div class="tile"><div class="k">Total orders</div><div class="v" id="stat-count">—</div></div>
+        <div class="tile"><div class="k">Total revenue</div><div class="v" id="stat-revenue">—</div></div>
+        <div class="tile"><div class="k">Today</div><div class="v" id="stat-today">—</div></div>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="num">#</th><th>Drink</th><th>Options</th><th class="num">Price</th><th>Date &amp; time</th>
+            </tr>
+          </thead>
+          <tbody id="orderRows"></tbody>
+        </table>
+      </div>
+      <p class="muted" id="ordersEmpty" style="text-align:center; padding:2rem; display:none">No orders yet.</p>
+    </section>
   </main>
 </div>
 
@@ -174,6 +222,8 @@
   "use strict";
   var TOKEN = sessionStorage.getItem("adminToken") || "";
   var products = [];
+  var orders = [];
+  var currentView = "products";
 
   var $ = function(id){ return document.getElementById(id); };
   function headers(){ return { "Content-Type":"application/json", "X-Admin-Token": TOKEN }; }
@@ -313,11 +363,65 @@
     }catch(e){ toast("Could not reach the server.", true); }
   }
 
+  // ---- Purchase history ----
+  function fmtDate(iso){
+    if(!iso) return "—";
+    var d = new Date(iso);
+    return isNaN(d.getTime()) ? "—" : d.toLocaleString();
+  }
+  function isToday(iso){
+    if(!iso) return false;
+    var d = new Date(iso), n = new Date();
+    return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate();
+  }
+  async function loadOrders(){
+    try{
+      var r = await fetch("/orders", { headers: headers() });
+      if(r.status===401){ return showGate("Session expired — sign in again."); }
+      var data = await r.json();
+      orders = data.orders || [];
+      renderOrders(data.summary || { count: orders.length, revenue: 0 });
+    }catch(e){ toast("Could not load orders.", true); }
+  }
+  function renderOrders(summary){
+    $("stat-count").textContent = summary.count;
+    $("stat-revenue").textContent = baht(summary.revenue);
+    $("stat-today").textContent = orders.filter(function(o){ return isToday(o.createdAt); }).length;
+    var rows = $("orderRows"); rows.innerHTML = "";
+    $("ordersEmpty").style.display = orders.length ? "none" : "block";
+    orders.forEach(function(o){
+      var opts = [];
+      if(o.temp) opts.push(o.temp === "hot" ? "Hot" : "Cold");
+      if(o.sweetness !== null && o.sweetness !== undefined && o.sweetness !== "") opts.push(o.sweetness + "%");
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td class="num">'+esc(o._id)+'</td>'+
+        '<td><strong>'+esc(o.name)+'</strong></td>'+
+        '<td class="muted">'+esc(opts.join(" · ") || "—")+'</td>'+
+        '<td class="num">'+baht(o.price)+'</td>'+
+        '<td>'+esc(fmtDate(o.createdAt))+'</td>';
+      rows.appendChild(tr);
+    });
+  }
+
+  function switchView(view){
+    currentView = view;
+    $("view-products").classList.toggle("hidden", view !== "products");
+    $("view-history").classList.toggle("hidden", view !== "history");
+    document.querySelectorAll(".tab").forEach(function(t){
+      t.classList.toggle("active", t.dataset.view === view);
+    });
+    if(view === "history") loadOrders(); else load();
+  }
+
   // ---- Events ----
   $("unlock").addEventListener("click", unlock);
   $("token").addEventListener("keydown", function(e){ if(e.key==="Enter") unlock(); });
   $("lock").addEventListener("click", lock);
-  $("refresh").addEventListener("click", load);
+  $("refresh").addEventListener("click", function(){ currentView === "history" ? loadOrders() : load(); });
+  document.querySelectorAll(".tab").forEach(function(t){
+    t.addEventListener("click", function(){ switchView(t.dataset.view); });
+  });
   $("addBtn").addEventListener("click", function(){ openEditor(null); });
   $("cancelBtn").addEventListener("click", closeEditor);
   $("editor").addEventListener("submit", save);

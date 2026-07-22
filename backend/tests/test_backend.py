@@ -163,6 +163,7 @@ class TestOrderRoutes:
         assert r.status_code == 201
         body = r.get_json()
         assert body["name"] == "Mocca" and isinstance(body["_id"], int)
+        assert "createdAt" in body  # orders are timestamped for history
 
     def test_bill_bad_temp(self, client):
         r = client.post("/bill", json={"name": "Mocca", "price": 50, "temp": "warm"})
@@ -181,7 +182,29 @@ class TestOrderRoutes:
         ).get_json()["_id"]
         assert second == first + 1
 
-    def test_coffee_list(self, client):
+    def test_coffee_requires_admin(self, client):
+        # Order history is customer data — the legacy /coffee is no longer public.
+        assert client.get("/coffee").status_code == 401
         client.post("/bill", json={"name": "A", "price": 50, "temp": "hot"})
-        r = client.get("/coffee")
+        r = client.get("/coffee", headers=ADMIN_HEADERS)
         assert r.status_code == 200 and len(r.get_json()) == 1
+
+
+class TestOrderHistory:
+    def test_orders_requires_admin(self, client):
+        assert client.get("/orders").status_code == 401
+
+    def test_orders_shape_and_summary(self, client):
+        client.post("/bill", json={"name": "A", "price": 50, "temp": "hot"})
+        client.post("/bill", json={"name": "B", "price": 60, "temp": "cold"})
+        r = client.get("/orders", headers=ADMIN_HEADERS)
+        assert r.status_code == 200
+        body = r.get_json()
+        assert body["summary"] == {"count": 2, "revenue": 110}
+        assert len(body["orders"]) == 2
+
+    def test_orders_newest_first(self, client):
+        client.post("/bill", json={"name": "First", "price": 50, "temp": "hot"})
+        client.post("/bill", json={"name": "Second", "price": 50, "temp": "cold"})
+        orders = client.get("/orders", headers=ADMIN_HEADERS).get_json()["orders"]
+        assert orders[0]["name"] == "Second"  # most recent first

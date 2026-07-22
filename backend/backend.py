@@ -1,6 +1,7 @@
 import hmac
 import os
 import re
+from datetime import datetime, timezone
 from functools import wraps
 
 from dotenv import load_dotenv
@@ -297,9 +298,22 @@ def admin_page():
 
 
 @app.route("/coffee", methods=["GET"])
+@require_admin
 def get_all_coffee():
+    # Order history is customer data — no longer public. Kept for compatibility;
+    # prefer /orders, which is sorted and includes a summary.
     coffee = list(collection.find())
     return jsonify(coffee), 200
+
+
+@app.route("/orders", methods=["GET"])
+@require_admin
+def list_orders():
+    """Admin: customer purchase history, newest first, with a summary."""
+    orders = list(collection.find().sort([("createdAt", -1), ("_id", -1)]))
+    revenue = sum(o.get("price", 0) for o in orders)
+    summary = {"count": len(orders), "revenue": revenue}
+    return jsonify({"orders": orders, "summary": summary}), 200
 
 
 @app.route("/bill", methods=["POST"])
@@ -309,7 +323,11 @@ def bill():
     if error:
         return jsonify({"error": error}), 400
 
-    new_coffee = {"_id": _next_order_id(), **cleaned}
+    new_coffee = {
+        "_id": _next_order_id(),
+        **cleaned,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+    }
 
     try:
         collection.insert_one(new_coffee)
