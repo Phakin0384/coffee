@@ -1,0 +1,580 @@
+<title>CREMA — Coffee Machine Kiosk Concept</title>
+<style>
+  :root {
+    /* --- Light "Daytime / Oat Milk" theme (default) --- */
+    --ground: #E7DAC6;
+    --ground-2: #DFD0B8;
+    --panel: #F5EEE1;
+    --card: #FFFDF8;
+    --card-2: #F7EFE1;
+    --card-sub: #6E5A47;
+    --ink: #291B11;
+    --ink-dim: #6E5A47;
+    --ink-faint: #97836C;
+    --crema: #B4762A;
+    --crema-soft: #E7CFA6;
+    --hot: #BE5F2A;
+    --cold: #35726E;
+    --line: rgba(41,27,17,.14);
+    --line-strong: rgba(41,27,17,.24);
+    --ceramic: #FBF4E7;
+    --ceramic-rim: #E4D6BE;
+    --shadow: rgba(41,27,17,.16);
+    --ok: #3E7A44;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #17100B;
+      --ground-2: #1E1510;
+      --panel: #241A13;
+      --card: #3A2A1E;
+      --card-2: #453324;
+      --card-sub: #E7D8C2;
+      --ink: #FBF3E6;
+      --ink-dim: #D8C8B2;
+      --ink-faint: #A8967E;
+      --crema: #E0A85D;
+      --crema-soft: #46341F;
+      --hot: #E68B4B;
+      --cold: #7FB0AC;
+      --line: rgba(224,168,93,.20);
+      --line-strong: rgba(224,168,93,.34);
+      --ceramic: #EFE3D0;
+      --ceramic-rim: #CDBB9C;
+      --shadow: rgba(0,0,0,.45);
+      --ok: #7FB985;
+    }
+  }
+  /* Explicit toggle overrides — must win in both directions */
+  :root[data-theme="light"] {
+    --ground: #E7DAC6; --ground-2: #DFD0B8; --panel: #F5EEE1; --card: #FFFDF8;
+    --card-2: #F7EFE1; --card-sub: #6E5A47; --ink: #291B11; --ink-dim: #6E5A47; --ink-faint: #97836C;
+    --crema: #B4762A; --crema-soft: #E7CFA6; --hot: #BE5F2A; --cold: #35726E;
+    --line: rgba(41,27,17,.14); --line-strong: rgba(41,27,17,.24);
+    --ceramic: #FBF4E7; --ceramic-rim: #E4D6BE; --shadow: rgba(41,27,17,.16); --ok:#3E7A44;
+  }
+  :root[data-theme="dark"] {
+    --ground: #17100B; --ground-2: #1E1510; --panel: #241A13; --card: #3A2A1E;
+    --card-2: #453324; --card-sub: #E7D8C2; --ink: #FBF3E6; --ink-dim: #D8C8B2; --ink-faint: #A8967E;
+    --crema: #E0A85D; --crema-soft: #46341F; --hot: #E68B4B; --cold: #7FB0AC;
+    --line: rgba(224,168,93,.20); --line-strong: rgba(224,168,93,.34);
+    --ceramic: #EFE3D0; --ceramic-rim: #CDBB9C; --shadow: rgba(0,0,0,.45); --ok:#7FB985;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background:
+      radial-gradient(120% 90% at 50% -10%, var(--ground-2), var(--ground) 60%);
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    display: grid;
+    place-items: center;
+    padding: clamp(10px, 2.4vw, 34px);
+    min-height: 100%;
+  }
+
+  /* ---------- Kiosk device frame ---------- */
+  .stage { width: min(96vw, 1200px); display: flex; flex-direction: column; gap: 14px; }
+  .device {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    width: 100%;
+    background: var(--panel);
+    border-radius: 26px;
+    border: 1px solid var(--line);
+    box-shadow: 0 40px 90px -30px var(--shadow), 0 2px 0 rgba(255,255,255,.04) inset;
+    overflow: hidden;
+    container-type: inline-size;
+  }
+  /* container query unit "cqw" scales everything with the frame */
+  .device { font-size: clamp(11px, 1.55cqw, 21px); }
+
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: 2.4em 2.6em 2.2em;
+    opacity: 0; visibility: hidden;
+    transform: translateY(8px) scale(.995);
+    transition: opacity .42s ease, transform .42s ease, visibility .42s;
+  }
+  .screen.active { opacity: 1; visibility: visible; transform: none; }
+
+  /* faint bean/ring texture */
+  .device::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(1.5px 1.5px at 12% 82%, var(--line-strong), transparent 60%),
+      radial-gradient(1.5px 1.5px at 86% 20%, var(--line-strong), transparent 60%),
+      radial-gradient(1.5px 1.5px at 68% 88%, var(--line), transparent 60%);
+    opacity: .6;
+  }
+
+  /* ---------- Top bar ---------- */
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 1em; z-index: 2; }
+  .brand { display: flex; align-items: baseline; gap: .5em; }
+  .brand b {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700; font-size: 1.5em; letter-spacing: .02em; color: var(--ink);
+  }
+  .brand span { font-size: .72em; letter-spacing: .28em; text-transform: uppercase; color: var(--crema); }
+  .steps { display: flex; align-items: center; gap: .6em; }
+  .dot { width: .62em; height: .62em; border-radius: 50%; background: var(--line-strong); transition: all .3s; }
+  .dot.on { background: var(--crema); box-shadow: 0 0 0 .28em var(--crema-soft); }
+  .util { display: flex; gap: .5em; }
+  .chip {
+    font: inherit; font-size: .74em; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-dim); background: transparent; border: 1px solid var(--line-strong);
+    padding: .5em .9em; border-radius: 999px; cursor: pointer;
+  }
+  .chip:hover { color: var(--ink); border-color: var(--crema); }
+  .chip:focus-visible, a:focus-visible, button:focus-visible { outline: 2px solid var(--crema); outline-offset: 2px; }
+
+  .eyebrow { font-size: .8em; letter-spacing: .3em; text-transform: uppercase; color: var(--crema); }
+  .thai { font-size: .92em; color: var(--ink-dim); }
+  h1,h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 700; margin: 0; text-wrap: balance; }
+
+  /* ---------- Attract screen ---------- */
+  #attract { align-items: center; justify-content: center; text-align: center; cursor: pointer; gap: .2em; }
+  #attract .halo {
+    position: absolute; width: 60%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, var(--crema-soft), transparent 62%);
+    opacity: .5; filter: blur(6px);
+  }
+  #attract .cupwrap { position: relative; width: 34%; max-width: 260px; }
+  #attract h1 { font-size: 4.4em; line-height: .96; margin-top: .18em; }
+  #attract .kick { font-size: 1.05em; color: var(--ink-dim); max-width: 26ch; margin: .2em auto 0; }
+  .startpill {
+    margin-top: 1.4em; font-size: .82em; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--ink); border: 1px solid var(--line-strong); border-radius: 999px;
+    padding: .9em 1.6em; display: inline-flex; align-items: center; gap: .7em;
+    animation: breathe 2.6s ease-in-out infinite;
+  }
+  .startpill i { width: .5em; height: .5em; border-radius: 50%; background: var(--crema); }
+  @keyframes breathe { 0%,100%{ opacity:.65 } 50%{ opacity:1 } }
+
+  /* steam */
+  .steam { position: absolute; left: 50%; top: 20%; translate: -50% 0; display: flex; gap: .5em; z-index: 3; }
+  .steam b {
+    display: block; width: .5em; height: 2.4em; border-radius: 999px;
+    background: linear-gradient(to top, transparent, var(--ink-dim));
+    opacity: 0; filter: blur(2px);
+    animation: rise 3.4s ease-in-out infinite;
+  }
+  .steam b:nth-child(2){ animation-delay: .5s; height: 3.1em; }
+  .steam b:nth-child(3){ animation-delay: 1s; }
+  @keyframes rise {
+    0% { opacity: 0; transform: translateY(10%) scaleX(1); }
+    30% { opacity: .5; }
+    100% { opacity: 0; transform: translateY(-120%) scaleX(.6); }
+  }
+
+  /* ---------- Menu screen ---------- */
+  .head { display: flex; align-items: flex-end; justify-content: space-between; margin: .3em 0 1em; }
+  #menu h2, #customize h2 { font-size: 2.4em; }
+  .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1em; flex: 1; }
+  .drink {
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    background: linear-gradient(180deg, var(--card), var(--card-2));
+    border: 1px solid var(--line); border-radius: 1.2em; padding: 1.1em .7em 1em;
+    cursor: pointer; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    text-align: center;
+  }
+  .drink:hover { transform: translateY(-.4em); border-color: var(--crema); box-shadow: 0 1.4em 2em -1em var(--shadow); }
+  .drink .art { width: 78%; aspect-ratio: 1; }
+  .drink .nm { font-family: Georgia, serif; font-weight: 700; font-size: 1.32em; margin-top: .1em; }
+  .drink .th { font-size: .84em; color: var(--card-sub); margin-top: .05em; }
+  .drink .price { margin-top: .55em; font-size: 1em; color: var(--crema); font-weight: 600; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .drink .tag {
+    position: absolute; top: .8em; right: .8em; font-size: .64em; letter-spacing: .12em; text-transform: uppercase;
+    padding: .3em .6em; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-dim);
+  }
+
+  /* ---------- Customize screen ---------- */
+  .cust { display: grid; grid-template-columns: .9fr 1.1fr; gap: 1.6em; flex: 1; min-height: 0; }
+  .preview {
+    position: relative; border-radius: 1.2em; background: linear-gradient(180deg, var(--card), var(--card-2));
+    border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.2em;
+  }
+  .preview .art { width: 62%; aspect-ratio: 1; }
+  .preview .nm { font-family: Georgia, serif; font-size: 2em; margin-top: .1em; }
+  .preview .th { color: var(--ink-dim); }
+  .panel-r { display: flex; flex-direction: column; gap: 1.05em; min-height: 0; }
+  .field .label { font-size: .78em; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: .55em; display:flex; justify-content: space-between; }
+  .segment { display: flex; gap: .6em; }
+  .seg {
+    flex: 1; font: inherit; font-size: 1.02em; cursor: pointer; color: var(--ink);
+    background: var(--card); border: 1px solid var(--line-strong); border-radius: .8em;
+    padding: .85em .4em; transition: all .16s ease; font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; justify-content: center; gap: .5em;
+  }
+  .seg:hover { border-color: var(--crema); }
+  .seg[aria-pressed="true"] { background: var(--crema); border-color: var(--crema); color: #1c130b; font-weight: 600; }
+  .seg .ic { width: 1.3em; height: 1.3em; }
+  .seg.hot[aria-pressed="true"] { background: var(--hot); border-color: var(--hot); color:#1c130b; }
+  .seg.cold[aria-pressed="true"] { background: var(--cold); border-color: var(--cold); color:#08201f; }
+  .muted { color: var(--ink-faint); font-size: .84em; }
+
+  .actionbar { display: flex; align-items: center; gap: 1em; margin-top: auto; padding-top: 1em; }
+  .summary { display: flex; flex-direction: column; }
+  .summary .s1 { font-size: .78em; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-dim); }
+  .summary .s2 { font-family: Georgia, serif; font-size: 1.5em; font-variant-numeric: tabular-nums; }
+  .btn {
+    font: inherit; cursor: pointer; border: none; border-radius: .9em;
+    padding: 1em 1.6em; font-size: 1.05em; letter-spacing: .04em; font-weight: 600;
+    display: inline-flex; align-items: center; gap: .7em; transition: transform .12s ease, filter .16s ease;
+  }
+  .btn:active { transform: translateY(1px) scale(.995); }
+  .btn.primary { background: var(--crema); color: #1c130b; box-shadow: 0 .7em 1.4em -.6em var(--crema); }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn.primary:disabled { background: var(--line-strong); color: var(--ink-faint); box-shadow: none; cursor: not-allowed; }
+  .btn.ghost { background: transparent; border: 1px solid var(--line-strong); color: var(--ink); font-weight: 500; }
+  .btn.ghost:hover { border-color: var(--crema); }
+  .grow { flex: 1; }
+
+  /* ---------- Pay screen ---------- */
+  .pay { display: grid; grid-template-columns: 1fr 1fr; gap: 1.8em; flex: 1; align-items: center; }
+  .qrcard {
+    justify-self: center; background: var(--ceramic); border-radius: 1.4em; padding: 1.4em;
+    border: 1px solid var(--line); box-shadow: 0 1.6em 2.4em -1.4em var(--shadow); text-align: center;
+  }
+  .qr { width: 15em; height: 15em; display: grid; grid-template-columns: repeat(21, 1fr); gap: 0; background: #fff; border-radius: .4em; overflow: hidden; }
+  .qr i { background: #14100c; }
+  .qrcard .cap { margin-top: .7em; font-size: .74em; letter-spacing: .18em; text-transform: uppercase; color: #7a6a52; }
+  .paylist { display: flex; flex-direction: column; gap: .6em; }
+  .paylist h2 { font-size: 2em; }
+  .rowline { display: flex; justify-content: space-between; padding: .7em 0; border-bottom: 1px dashed var(--line-strong); }
+  .rowline span:last-child { font-variant-numeric: tabular-nums; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; margin-top: .3em; }
+  .total b { font-family: Georgia, serif; font-size: 2.1em; color: var(--crema); font-variant-numeric: tabular-nums; }
+  .waiting { display: inline-flex; align-items: center; gap: .6em; color: var(--ink-dim); font-size: .9em; margin-top: .4em; }
+  .waiting i { width: .6em; height: .6em; border-radius: 50%; background: var(--crema); animation: breathe 1.3s infinite; }
+
+  /* ---------- Done screen ---------- */
+  #done { align-items: center; justify-content: center; text-align: center; gap: .3em; }
+  .check { width: 4.4em; height: 4.4em; border-radius: 50%; background: var(--crema-soft); display: grid; place-items: center; margin-bottom: .3em; }
+  .check svg { width: 2.4em; height: 2.4em; }
+  #done h1 { font-size: 3.2em; }
+  .order-no { font-variant-numeric: tabular-nums; letter-spacing: .1em; color: var(--crema); font-size: 1.1em; margin-top: .2em; }
+
+  .caption { text-align: center; color: var(--ink-dim); font-size: 13px; }
+  .caption b { color: var(--ink); font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; font-size: 12.5px; color: var(--ink-dim); }
+  .legend span::before { content:""; display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align: middle; }
+  .legend .l-crema::before{ background: var(--crema);} .legend .l-hot::before{ background: var(--hot);} .legend .l-cold::before{ background: var(--cold);}
+
+  @media (prefers-reduced-motion: reduce) {
+    *, .screen, .startpill, .steam b, .waiting i { animation: none !important; transition: none !important; }
+    .screen:not(.active){ display:none; }
+  }
+</style>
+
+<div class="stage">
+  <div class="device" id="device">
+
+    <!-- ATTRACT -->
+    <section class="screen active" id="attract" role="button" tabindex="0" aria-label="Tap to start">
+      <div class="halo"></div>
+      <div class="steam" aria-hidden="true"><b></b><b></b><b></b></div>
+      <div class="cupwrap" id="attractCup"></div>
+      <div class="eyebrow">Fresh Coffee · Freshly Pressed</div>
+      <h1>CREMA</h1>
+      <p class="kick">Café-grade espresso from the machine. Five drinks, brewed to your taste in under a minute.</p>
+      <div class="startpill"><i></i> แตะเพื่อเริ่ม · Touch to start</div>
+    </section>
+
+    <!-- MENU -->
+    <section class="screen" id="menu">
+      <div class="bar">
+        <div class="brand"><b>CREMA</b><span>Menu</span></div>
+        <div class="steps"><i class="dot on"></i><i class="dot"></i><i class="dot"></i></div>
+        <div class="util"><button class="chip" data-theme-toggle>Theme</button></div>
+      </div>
+      <div class="head">
+        <div>
+          <div class="eyebrow">Step 1 of 3</div>
+          <h2>Choose your coffee</h2>
+        </div>
+        <div class="thai">เลือกเมนูที่ต้องการ</div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- CUSTOMIZE -->
+    <section class="screen" id="customize">
+      <div class="bar">
+        <div class="brand"><b>CREMA</b><span>Customize</span></div>
+        <div class="steps"><i class="dot"></i><i class="dot on"></i><i class="dot"></i></div>
+        <div class="util"><button class="chip" data-back>‹ Back</button></div>
+      </div>
+      <div class="cust">
+        <div class="preview">
+          <div class="steam" aria-hidden="true" style="top:18%"><b></b><b></b><b></b></div>
+          <div class="art" id="custCup"></div>
+          <div class="nm" id="custName">—</div>
+          <div class="th" id="custThai">—</div>
+        </div>
+        <div class="panel-r">
+          <div class="field" id="sweetField">
+            <div class="label"><span>Sweetness · ความหวาน</span><span id="sweetVal" class="muted"></span></div>
+            <div class="segment" id="sweetSeg"></div>
+          </div>
+          <div class="field">
+            <div class="label"><span>Temperature · อุณหภูมิ</span></div>
+            <div class="segment">
+              <button class="seg hot" data-temp="hot" aria-pressed="false">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 3-1.5 4 0 7 1 2 3 2 3 5a5 5 0 0 1-10 0c0-2 1-3 2-4"/></svg>
+                ร้อน · Hot
+              </button>
+              <button class="seg cold" data-temp="cold" aria-pressed="false">
+                <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4 6l16 12M20 6L4 18"/></svg>
+                เย็น · Cold
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <div class="label"><span>Note</span></div>
+            <p class="muted" id="custNote" style="margin:.1em 0 0">Choose a temperature to continue.</p>
+          </div>
+          <div class="actionbar">
+            <div class="summary">
+              <span class="s1">Total</span>
+              <span class="s2" id="custTotal">฿50</span>
+            </div>
+            <span class="grow"></span>
+            <button class="btn ghost" data-back>ยกเลิก</button>
+            <button class="btn primary" id="confirmBtn" disabled>ยืนยันคำสั่งซื้อ · Confirm ›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAY -->
+    <section class="screen" id="pay">
+      <div class="bar">
+        <div class="brand"><b>CREMA</b><span>Payment</span></div>
+        <div class="steps"><i class="dot"></i><i class="dot"></i><i class="dot on"></i></div>
+        <div class="util"><button class="chip" data-back>‹ Back</button></div>
+      </div>
+      <div class="pay">
+        <div class="qrcard">
+          <div class="qr" id="qr" aria-label="Demo QR code"></div>
+          <div class="cap">พร้อมเพย์ · Demo QR</div>
+        </div>
+        <div class="paylist">
+          <div class="eyebrow">Scan to pay · สแกนเพื่อจ่าย</div>
+          <h2 id="payName">Latte</h2>
+          <div class="rowline"><span id="payOpts" class="muted">Hot · 75% sweet</span><span></span></div>
+          <div class="rowline"><span>ราคา · Price</span><span id="payPrice">฿50</span></div>
+          <div class="total"><span class="s1" style="letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim)">Total</span><b id="payTotal">฿50</b></div>
+          <div class="waiting"><i></i> Waiting for payment…</div>
+          <div class="actionbar" style="padding-top:.6em">
+            <button class="btn ghost" data-back>‹ Back</button>
+            <button class="btn primary" id="paidBtn">ชำระเงินแล้ว · I've paid</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DONE -->
+    <section class="screen" id="done">
+      <div class="check">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--crema)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg>
+      </div>
+      <div class="eyebrow">Order confirmed</div>
+      <h1>ขอบคุณค่ะ</h1>
+      <p class="kick" style="color:var(--ink-dim);max-width:30ch">Thank you! Your <b id="doneName">coffee</b> is being brewed. Please collect it from the tray below.</p>
+      <div class="order-no" id="doneNo">Order · A-014</div>
+      <div class="startpill" style="animation:none;cursor:pointer" id="doneReset"><i></i> Returning home…</div>
+    </section>
+
+  </div>
+
+  <div class="caption" id="caption">Interactive concept — <b>tap the screen to start</b>, then order a coffee. Toggle light/evening theme on the menu.</div>
+  <div class="legend">
+    <span class="l-crema">Crema · accent &amp; selection</span>
+    <span class="l-hot">Amber · hot</span>
+    <span class="l-cold">Teal · cold</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // --- Menu data (mirrors the app's real menu.js) ---
+  const MENU = [
+    { id:"mocca",      name:"Mocca",      thai:"มอคค่า",    price:50, sweet:true,  liquid:"#3A2216", foam:"cocoa" , tag:"Choc" },
+    { id:"americano",  name:"Americano",  thai:"อเมริกาโน่", price:50, sweet:false, liquid:"#241610", foam:"none"  , tag:"Black" },
+    { id:"espresso",   name:"Espresso",   thai:"เอสเพรสโซ่", price:50, sweet:true,  liquid:"#2A160D", foam:"crema" , tag:"Shot", small:true },
+    { id:"cappuccino", name:"Cappuccino", thai:"คาปูชิโน่",  price:50, sweet:true,  liquid:"#6E4A2D", foam:"dome"  , tag:"Foam" },
+    { id:"latte",      name:"Latte",      thai:"ลาเต้",      price:50, sweet:true,  liquid:"#7C5838", foam:"art"   , tag:"Milk" },
+  ];
+  const SWEET = [25,50,75,100];
+
+  // --- SVG cup illustration generator ---
+  function cup(d, scale){
+    scale = scale || 1;
+    const s = d.small ? 0.82*scale : scale;
+    const foamDome = d.foam==="dome"
+      ? `<ellipse cx="100" cy="82" rx="50" ry="16" fill="#F3E7D0"/><ellipse cx="100" cy="80" rx="40" ry="10" fill="#FBF3E2"/>` : "";
+    const crema = d.foam==="crema"
+      ? `<ellipse cx="100" cy="90" rx="44" ry="8.5" fill="#B98544"/><ellipse cx="100" cy="89" rx="30" ry="5" fill="#CE9A57"/>` : "";
+    const cocoa = d.foam==="cocoa"
+      ? `<ellipse cx="100" cy="90" rx="45" ry="8.5" fill="#5A3A24"/><circle cx="86" cy="89" r="1.6" fill="#3A2416"/><circle cx="104" cy="90" r="1.6" fill="#3A2416"/><circle cx="114" cy="88" r="1.4" fill="#3A2416"/>` : "";
+    const art = d.foam==="art"
+      ? `<ellipse cx="100" cy="90" rx="45" ry="8.5" fill="#C89A66"/><path d="M100 84 q10 4 0 12 q-10 -8 0 -12z" fill="#EFE0C6"/><path d="M100 96 l0 -2" stroke="#EFE0C6" stroke-width="1.4"/>` : "";
+    const surface = (d.foam==="none")
+      ? `<ellipse cx="100" cy="90" rx="45" ry="8.5" fill="${d.liquid}"/>`
+      : (d.foam==="dome" ? "" : `<ellipse cx="100" cy="91" rx="45" ry="8.5" fill="${d.liquid}"/>`);
+    return `<svg viewBox="0 0 200 200" width="100%" height="100%" role="img" aria-label="${d.name}">
+      <ellipse cx="100" cy="182" rx="${58*s}" ry="9" fill="var(--shadow)" opacity=".5"/>
+      <g transform="translate(100 118) scale(${s}) translate(-100 -118)">
+        <path d="M150 96 q36 2 36 28 t-36 28" fill="none" stroke="var(--ceramic)" stroke-width="11"/>
+        <path d="M150 98 q26 2 26 24 t-26 24" fill="none" stroke="var(--ceramic-rim)" stroke-width="4"/>
+        <path d="M48 92 h104 l-9 60 q-2.5 16 -19 16 h-48 q-16.5 0 -19 -16 z" fill="var(--ceramic)"/>
+        <path d="M48 92 h104 l-1.4 9 h-101.2 z" fill="var(--ceramic-rim)"/>
+        <ellipse cx="100" cy="92" rx="52" ry="12.5" fill="var(--ceramic-rim)"/>
+        <ellipse cx="100" cy="92" rx="46" ry="9.5" fill="${d.liquid}"/>
+        ${surface}${crema}${cocoa}${art}${foamDome}
+      </g>
+    </svg>`;
+  }
+
+  // --- State ---
+  const state = { drink:null, sweet:null, temp:null, order:14 };
+  const $ = (s,el)=> (el||document).querySelector(s);
+  const $$ = (s,el)=> Array.from((el||document).querySelectorAll(s));
+  const baht = n => "฿"+n;
+
+  // --- Screen navigation ---
+  const screens = {};
+  $$(".screen").forEach(s => screens[s.id]=s);
+  function go(id){
+    Object.values(screens).forEach(s=>s.classList.remove("active"));
+    screens[id].classList.add("active");
+    if(id==="menu") caption("Tap a drink to customize it.");
+    if(id==="attract") caption("Interactive concept — tap the screen to start, then order a coffee.");
+  }
+  function caption(t){ const c=$("#caption"); if(c) c.innerHTML = t; }
+
+  // --- Render attract cup ---
+  $("#attractCup").innerHTML = cup(MENU[4], 1);
+
+  // --- Render menu grid ---
+  const grid = $("#grid");
+  MENU.forEach(d=>{
+    const el = document.createElement("button");
+    el.className = "drink"; el.type="button";
+    el.innerHTML = `<span class="tag">${d.tag}</span>
+      <span class="art">${cup(d,1)}</span>
+      <span class="nm">${d.name}</span>
+      <span class="th">${d.thai}</span>
+      <span class="price">${baht(d.price)}</span>`;
+    el.addEventListener("click", ()=> openDrink(d.id));
+    grid.appendChild(el);
+  });
+
+  // --- Customize ---
+  function openDrink(id){
+    state.drink = MENU.find(x=>x.id===id);
+    state.sweet = null; state.temp = null;
+    $("#custCup").innerHTML = cup(state.drink, 1);
+    $("#custName").textContent = state.drink.name;
+    $("#custThai").textContent = state.drink.thai;
+
+    // sweetness segment (hidden for drinks without it)
+    const sf = $("#sweetField"), seg = $("#sweetSeg");
+    seg.innerHTML = "";
+    if(state.drink.sweet){
+      sf.style.display="";
+      SWEET.forEach(v=>{
+        const b=document.createElement("button");
+        b.className="seg"; b.type="button"; b.setAttribute("aria-pressed","false");
+        b.textContent = v+"%";
+        b.addEventListener("click", ()=>{ state.sweet=v; paintSweet(); refresh(); });
+        seg.appendChild(b);
+      });
+      $("#sweetVal").textContent="";
+    } else {
+      sf.style.display="none";
+    }
+    paintSweet(); paintTemp(); refresh();
+    go("customize");
+  }
+  function paintSweet(){
+    $$("#sweetSeg .seg").forEach((b,i)=> b.setAttribute("aria-pressed", String(SWEET[i]===state.sweet)));
+    $("#sweetVal").textContent = state.sweet!=null ? state.sweet+"%" : "";
+  }
+  $$('[data-temp]').forEach(b=> b.addEventListener("click", ()=>{ state.temp=b.dataset.temp; paintTemp(); refresh(); }));
+  function paintTemp(){ $$('[data-temp]').forEach(b=> b.setAttribute("aria-pressed", String(b.dataset.temp===state.temp))); }
+  function refresh(){
+    const needSweet = state.drink && state.drink.sweet;
+    const ok = state.temp!=null && (!needSweet || state.sweet!=null);
+    $("#confirmBtn").disabled = !ok;
+    $("#custTotal").textContent = baht(state.drink? state.drink.price : 50);
+    const parts = [];
+    if(state.temp) parts.push(state.temp==="hot"?"ร้อน":"เย็น");
+    if(needSweet && state.sweet!=null) parts.push(state.sweet+"% หวาน");
+    $("#custNote").textContent = ok ? ("Ready: "+parts.join(" · ")) :
+      (state.temp==null ? "Choose a temperature to continue." : "Choose a sweetness level to continue.");
+  }
+  $("#confirmBtn").addEventListener("click", ()=>{ if(!$("#confirmBtn").disabled) toPay(); });
+
+  // --- Pay ---
+  function toPay(){
+    const d=state.drink;
+    $("#payName").textContent = d.name;
+    const opt=[]; opt.push(state.temp==="hot"?"Hot · ร้อน":"Cold · เย็น");
+    if(d.sweet) opt.push(state.sweet+"% sweet");
+    $("#payOpts").textContent = opt.join(" · ");
+    $("#payPrice").textContent = baht(d.price);
+    $("#payTotal").textContent = baht(d.price);
+    go("pay");
+  }
+  $("#paidBtn").addEventListener("click", finish);
+
+  // --- Done ---
+  let backTimer=null;
+  function finish(){
+    state.order++;
+    $("#doneName").textContent = state.drink.name;
+    $("#doneNo").textContent = "Order · A-"+String(state.order).padStart(3,"0");
+    go("done");
+    clearTimeout(backTimer);
+    backTimer = setTimeout(()=> go("attract"), 4200);
+  }
+  $("#doneReset").addEventListener("click", ()=>{ clearTimeout(backTimer); go("attract"); });
+
+  // --- Attract + back + theme wiring ---
+  screens.attract.addEventListener("click", ()=> go("menu"));
+  screens.attract.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go("menu"); }});
+  $$('[data-back]').forEach(b=> b.addEventListener("click", ()=>{
+    if(screens.pay.classList.contains("active")) go("customize");
+    else go("menu");
+  }));
+
+  // Theme toggle (stamps data-theme; overrides media query both ways)
+  $$('[data-theme-toggle]').forEach(btn=> btn.addEventListener("click", ()=>{
+    const root=document.documentElement;
+    const cur = root.getAttribute("data-theme")
+      || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark":"light");
+    root.setAttribute("data-theme", cur==="dark"?"light":"dark");
+  }));
+
+  // --- Build a stable demo QR pattern (decorative placeholder) ---
+  (function(){
+    const qr=$("#qr"); const N=21; let seed=7;
+    const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+    const finder=(r,c)=> (r<7&&c<7)||(r<7&&c>13)||(r>13&&c<7);
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const cell=document.createElement("i");
+      let on;
+      if(finder(r,c)){ const rr=r%7||r, cc=c%7||c; on = (r%7===0||r%7===6||c%7===0||c%7===6|| (r%7>=2&&r%7<=4&&c%7>=2&&c%7<=4)); }
+      else on = rnd()>0.52;
+      cell.style.background = on ? "#14100c" : "transparent";
+      qr.appendChild(cell);
+    }
+  })();
+})();
+</script>
