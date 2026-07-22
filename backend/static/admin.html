@@ -166,6 +166,7 @@
           <h2 style="margin:.2rem 0; font-family:Georgia,serif">Purchase history</h2>
           <div class="muted" style="font-size:.9rem">Every order customers placed on the machine, newest first.</div>
         </div>
+        <button class="btn" id="exportBtn">⭳ Export CSV</button>
       </div>
       <div class="tiles">
         <div class="tile"><div class="k">Total orders</div><div class="v" id="stat-count">—</div></div>
@@ -176,7 +177,7 @@
         <table>
           <thead>
             <tr>
-              <th class="num">#</th><th>Drink</th><th>Options</th><th class="num">Price</th><th>Date &amp; time</th>
+              <th class="num">#</th><th>Drink</th><th>Options</th><th class="num">Price</th><th>Date &amp; time</th><th></th>
             </tr>
           </thead>
           <tbody id="orderRows"></tbody>
@@ -399,9 +400,34 @@
         '<td><strong>'+esc(o.name)+'</strong></td>'+
         '<td class="muted">'+esc(opts.join(" · ") || "—")+'</td>'+
         '<td class="num">'+baht(o.price)+'</td>'+
-        '<td>'+esc(fmtDate(o.createdAt))+'</td>';
+        '<td>'+esc(fmtDate(o.createdAt))+'</td>'+
+        '<td class="actions"><button class="btn small danger" data-delorder="'+esc(o._id)+'">Delete</button></td>';
       rows.appendChild(tr);
     });
+  }
+
+  async function deleteOrder(id){
+    if(!confirm('Delete order #'+id+'? This cannot be undone.')) return;
+    try{
+      var r = await fetch("/orders/"+encodeURIComponent(id), { method:"DELETE", headers:headers() });
+      if(!r.ok){ toast("Delete failed.", true); return; }
+      toast("Order deleted.");
+      loadOrders();
+    }catch(e){ toast("Could not reach the server.", true); }
+  }
+
+  async function exportCsv(){
+    try{
+      var r = await fetch("/orders.csv", { headers: headers() });
+      if(!r.ok){ toast("Export failed.", true); return; }
+      var blob = await r.blob();
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "orders-" + new Date().toISOString().slice(0,10) + ".csv";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }catch(e){ toast("Could not reach the server.", true); }
   }
 
   function switchView(view){
@@ -433,6 +459,10 @@
     if(t.dataset.edit) openEditor(products.find(function(x){ return x._id===t.dataset.edit; }));
     else if(t.dataset.del) del(t.dataset.del);
     else if(t.dataset.toggle) toggleAvailable(t.dataset.toggle);
+  });
+  $("exportBtn").addEventListener("click", exportCsv);
+  $("orderRows").addEventListener("click", function(e){
+    if(e.target.dataset.delorder) deleteOrder(e.target.dataset.delorder);
   });
 
   // ---- Boot ----

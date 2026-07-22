@@ -1,11 +1,13 @@
+import csv
 import hmac
+import io
 import os
 import re
 from datetime import datetime, timezone
 from functools import wraps
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient, ReturnDocument
 import pymongo
@@ -314,6 +316,47 @@ def list_orders():
     revenue = sum(o.get("price", 0) for o in orders)
     summary = {"count": len(orders), "revenue": revenue}
     return jsonify({"orders": orders, "summary": summary}), 200
+
+
+def _order_id_query(oid):
+    """Match an order by id, tolerating both int (new) and string (legacy) ids."""
+    if oid.lstrip("-").isdigit():
+        return {"_id": {"$in": [oid, int(oid)]}}
+    return {"_id": oid}
+
+
+@app.route("/orders/<oid>", methods=["DELETE"])
+@require_admin
+def delete_order(oid):
+    result = collection.delete_one(_order_id_query(oid))
+    if result.deleted_count == 0:
+        return jsonify({"error": "Order not found."}), 404
+    return jsonify({"deleted": oid}), 200
+
+
+@app.route("/orders.csv", methods=["GET"])
+@require_admin
+def export_orders_csv():
+    orders = list(collection.find().sort([("createdAt", -1), ("_id", -1)]))
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["id", "name", "temp", "sweetness", "price", "createdAt"])
+    for o in orders:
+        writer.writerow(
+            [
+                o.get("_id", ""),
+                o.get("name", ""),
+                o.get("temp", ""),
+                o.get("sweetness", ""),
+                o.get("price", ""),
+                o.get("createdAt", ""),
+            ]
+        )
+    return Response(
+        buf.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=orders.csv"},
+    )
 
 
 @app.route("/bill", methods=["POST"])

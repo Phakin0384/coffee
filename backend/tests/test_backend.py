@@ -208,3 +208,24 @@ class TestOrderHistory:
         client.post("/bill", json={"name": "Second", "price": 50, "temp": "cold"})
         orders = client.get("/orders", headers=ADMIN_HEADERS).get_json()["orders"]
         assert orders[0]["name"] == "Second"  # most recent first
+
+    def test_delete_order_requires_admin(self, client):
+        oid = client.post(
+            "/bill", json={"name": "A", "price": 50, "temp": "hot"}
+        ).get_json()["_id"]
+        assert client.delete(f"/orders/{oid}").status_code == 401
+        assert client.delete(f"/orders/{oid}", headers=ADMIN_HEADERS).status_code == 200
+        assert client.get("/orders", headers=ADMIN_HEADERS).get_json()["summary"]["count"] == 0
+
+    def test_delete_order_missing(self, client):
+        assert client.delete("/orders/9999", headers=ADMIN_HEADERS).status_code == 404
+
+    def test_csv_export(self, client):
+        client.post("/bill", json={"name": "Latte", "price": 55, "temp": "hot", "sweetness": 25})
+        assert client.get("/orders.csv").status_code == 401
+        r = client.get("/orders.csv", headers=ADMIN_HEADERS)
+        assert r.status_code == 200
+        assert "text/csv" in r.headers["Content-Type"]
+        text = r.get_data(as_text=True)
+        assert text.splitlines()[0] == "id,name,temp,sweetness,price,createdAt"
+        assert "Latte" in text
