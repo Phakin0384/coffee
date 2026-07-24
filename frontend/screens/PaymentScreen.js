@@ -66,6 +66,7 @@ export default function PaymentScreen() {
       />
 
       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={[
           styles.scroll,
           {
@@ -212,10 +213,13 @@ function DoneScreen({ drink, orderId, onHome, colors }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  scrollView: { flex: 1 },
   scroll: { paddingHorizontal: 24, paddingBottom: 28, flexGrow: 1 },
 
-  pay: { flex: 1, gap: 26, alignItems: 'center' },
-  payWide: { flexDirection: 'row', justifyContent: 'center' },
+  // flex:1 only on the wide layout — on a phone the content must size to itself
+  // so the ScrollView can scroll to the pay button.
+  pay: { gap: 26, alignItems: 'center' },
+  payWide: { flexDirection: 'row', justifyContent: 'center', flex: 1 },
   payStacked: { flexDirection: 'column' },
 
   qrCol: { alignItems: 'center', justifyContent: 'center' },

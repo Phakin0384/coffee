@@ -89,6 +89,7 @@ export default function Menu() {
         </View>
       ) : (
         <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={[
             styles.scroll,
             {
@@ -175,6 +176,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  // Bound the scroll area to the screen so overflow scrolls on web.
+  scrollView: { flex: 1 },
   head: {
     flexDirection: 'row',
     alignItems: 'flex-end',
