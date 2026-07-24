@@ -1,27 +1,49 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  StatusBar,
-  TouchableOpacity,
   StyleSheet,
   Text,
   View,
-  Image,
   ScrollView,
   ActivityIndicator,
+  Pressable,
+  TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { getProducts } from './api/client';
-import { MENU as FALLBACK_MENU } from './data/menu';
-import { colors, radius } from './theme';
+import { MENU as FALLBACK_MENU, artFor } from './data/menu';
+import { cardRadius, radius } from './theme';
+import { useTheme } from './ThemeContext';
 import { serif } from './fonts';
+import TopBar, { Chip } from './ui/TopBar';
+import Cup from './ui/Cup';
 
-// The menu is loaded live from the backend so staff can add or hide drinks
-// from the admin page without shipping a new app build. If the server can't be
-// reached, we fall back to the built-in list so the machine still works.
+const GAP = 16;
+const PAD = 24;
+
+// Widest layout the kiosk screen uses; narrower windows step down so the same
+// build works on a phone, a tablet and the machine itself.
+function columnsFor(width) {
+  if (width >= 1100) return 5;
+  if (width >= 820) return 4;
+  if (width >= 560) return 3;
+  return 2;
+}
+
+// The menu is loaded live from the backend so staff can add or hide drinks from
+// the admin page without shipping a new app build. If the server can't be
+// reached we fall back to the built-in list so the machine still works.
 export default function Menu() {
   const navigation = useNavigation();
+  const { colors, toggle } = useTheme();
+  const { width } = useWindowDimensions();
+
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState('loading'); // loading | ready | error
+
+  const cols = columnsFor(width);
+  const cardW = Math.floor((width - PAD * 2 - GAP * (cols - 1)) / cols);
 
   const loadMenu = useCallback(async () => {
     setStatus('loading');
@@ -41,75 +63,128 @@ export default function Menu() {
   }, [loadMenu]);
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
+    <LinearGradient colors={[colors.groundAlt, colors.ground]} style={styles.container}>
+      <TopBar label="Menu" step={1} right={<Chip label="Theme" onPress={toggle} />} />
 
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>CHOOSE YOUR COFFEE</Text>
-        <Text style={styles.title}>เมนู</Text>
-        <Text style={styles.subtitle}>กดเพื่อเลือกเมนู</Text>
+      <View style={styles.head}>
+        <View style={styles.headLeft}>
+          <Text style={[styles.eyebrow, { color: colors.crema }]}>STEP 1 OF 3</Text>
+          <Text style={[styles.title, { color: colors.ink }]}>Choose your coffee</Text>
+        </View>
+        <Text style={[styles.headThai, { color: colors.inkDim }]}>เลือกเมนูที่ต้องการ</Text>
       </View>
 
       {status === 'loading' ? (
         <View style={styles.centre}>
-          <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={styles.hint}>กำลังโหลดเมนู… · Loading menu…</Text>
+          <ActivityIndicator size="large" color={colors.crema} />
+          <Text style={[styles.hint, { color: colors.inkDim }]}>
+            กำลังโหลดเมนู… · Loading menu…
+          </Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.list}>
+        <ScrollView contentContainerStyle={styles.scroll}>
           {status === 'error' && (
-            <TouchableOpacity style={styles.offline} onPress={loadMenu}>
-              <Text style={styles.offlineText}>ออฟไลน์ · Showing saved menu — tap to retry</Text>
+            <TouchableOpacity
+              style={[styles.offline, { backgroundColor: colors.cremaSoft }]}
+              onPress={loadMenu}
+            >
+              <Text style={[styles.offlineText, { color: colors.ink }]}>
+                ออฟไลน์ · Showing saved menu — tap to retry
+              </Text>
             </TouchableOpacity>
           )}
-          {items.map((drink) => (
-            <TouchableOpacity
-              key={drink.id}
-              style={styles.card}
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('Buy', { product: drink })}
-            >
-              <Image source={{ uri: drink.image }} style={styles.cardImage} />
-              <View style={styles.cardBody}>
-                <Text style={styles.cardName}>{drink.name}</Text>
-                {!!drink.nameThai && <Text style={styles.cardThai}>{drink.nameThai}</Text>}
-              </View>
-              <Text style={styles.cardPrice}>฿{drink.price}</Text>
-            </TouchableOpacity>
-          ))}
+
+          <View style={styles.grid}>
+            {items.map((drink) => (
+              <DrinkCard
+                key={drink.id}
+                drink={drink}
+                width={cardW}
+                onPress={() => navigation.navigate('Buy', { product: drink })}
+              />
+            ))}
+          </View>
         </ScrollView>
       )}
-    </View>
+    </LinearGradient>
+  );
+}
+
+// Lifts on hover (web/kiosk with a pointer) and dims on press (touch).
+function DrinkCard({ drink, width, onPress }) {
+  const { colors } = useTheme();
+  const [hovered, setHovered] = useState(false);
+  const art = artFor(drink);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      style={({ pressed }) => [
+        styles.cardOuter,
+        {
+          width,
+          borderColor: hovered ? colors.crema : colors.line,
+          shadowColor: colors.shadow,
+          shadowOpacity: hovered ? 0.9 : 0.35,
+          transform: [{ translateY: hovered && !pressed ? -6 : 0 }],
+          opacity: pressed ? 0.9 : 1,
+        },
+      ]}
+    >
+      <LinearGradient colors={[colors.card, colors.cardAlt]} style={styles.cardInner}>
+        <View style={[styles.tag, { borderColor: colors.lineStrong }]}>
+          <Text style={[styles.tagText, { color: colors.inkDim }]} numberOfLines={1}>
+            {art.tag}
+          </Text>
+        </View>
+
+        <Cup art={art} size={width * 0.78} />
+
+        <Text style={[styles.cardName, { color: colors.ink }]} numberOfLines={1}>
+          {drink.name}
+        </Text>
+        {!!drink.nameThai && (
+          <Text style={[styles.cardThai, { color: colors.cardSub }]} numberOfLines={1}>
+            {drink.nameThai}
+          </Text>
+        )}
+        <Text style={[styles.cardPrice, { color: colors.crema }]}>฿{drink.price}</Text>
+      </LinearGradient>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 12,
+  head: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: 16,
+    paddingHorizontal: PAD,
+    paddingTop: 6,
+    paddingBottom: 18,
+  },
+  headLeft: {
+    flexShrink: 1,
   },
   eyebrow: {
-    fontSize: 12,
+    fontSize: 11,
     letterSpacing: 3,
-    color: colors.accent,
     fontWeight: '600',
   },
   title: {
     fontFamily: serif,
-    fontSize: 40,
+    fontSize: 34,
     fontWeight: '700',
-    color: colors.text,
     marginTop: 2,
   },
-  subtitle: {
-    fontSize: 14,
-    color: colors.dim,
-    marginTop: 2,
+  headThai: {
+    fontSize: 15,
   },
   centre: {
     flex: 1,
@@ -118,57 +193,70 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   hint: {
-    color: colors.dim,
     fontSize: 14,
   },
-  list: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
+  scroll: {
+    paddingHorizontal: PAD,
+    paddingBottom: 28,
     gap: 14,
   },
   offline: {
-    backgroundColor: colors.thanks,
     borderRadius: radius,
     paddingVertical: 10,
     paddingHorizontal: 16,
     alignItems: 'center',
   },
   offlineText: {
-    color: colors.text,
     fontSize: 13,
   },
-  card: {
+  grid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    backgroundColor: colors.surface,
-    borderRadius: 18,
+    flexWrap: 'wrap',
+    gap: GAP,
+  },
+  cardOuter: {
     borderWidth: 1,
-    borderColor: colors.line,
-    padding: 12,
+    borderRadius: cardRadius,
+    // The gradient child paints the fill, so clip it to the rounded corners.
+    overflow: 'hidden',
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
   },
-  cardImage: {
-    width: 68,
-    height: 84,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceAlt,
+  cardInner: {
+    alignItems: 'center',
+    paddingTop: 18,
+    paddingBottom: 16,
+    paddingHorizontal: 10,
   },
-  cardBody: {
-    flex: 1,
+  tag: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    maxWidth: '60%',
+    zIndex: 2,
+  },
+  tagText: {
+    fontSize: 9,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
   cardName: {
     fontFamily: serif,
-    fontSize: 22,
-    color: colors.text,
+    fontWeight: '700',
+    fontSize: 20,
+    marginTop: 6,
   },
   cardThai: {
-    fontSize: 14,
-    color: colors.dim,
+    fontSize: 13,
     marginTop: 2,
   },
   cardPrice: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.accent,
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 8,
   },
 });

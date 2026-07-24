@@ -10,6 +10,50 @@ export const QR_IMAGE = 'https://img5.pic.in.th/file/secure-sv1/S__30220303.jpeg
 
 export const SWEETNESS_LEVELS: number[] = [25, 50, 75, 100];
 
+// ---------------------------------------------------------------------------
+// Cup illustration recipes
+// ---------------------------------------------------------------------------
+export type Foam = 'none' | 'crema' | 'cocoa' | 'art' | 'dome';
+
+export interface DrinkArt {
+  liquid: string;
+  foam: Foam;
+  tag: string;
+  small?: boolean;
+}
+
+// Hand-tuned for the drinks we ship with, matching the design concept.
+export const DRINK_ART: Record<string, DrinkArt> = {
+  mocca: { liquid: '#3A2216', foam: 'cocoa', tag: 'Choc' },
+  americano: { liquid: '#241610', foam: 'none', tag: 'Black' },
+  espresso: { liquid: '#2A160D', foam: 'crema', tag: 'Shot', small: true },
+  cappuccino: { liquid: '#6E4A2D', foam: 'dome', tag: 'Foam' },
+  latte: { liquid: '#7C5838', foam: 'art', tag: 'Milk' },
+};
+
+// Anything staff add from the admin page still needs a cup. Pick one
+// deterministically from the drink's id so the same drink always looks the
+// same, and let the admin's `category` supply the badge when they set one.
+const FALLBACK_ART: Omit<DrinkArt, 'tag'>[] = [
+  { liquid: '#7C5838', foam: 'art' },
+  { liquid: '#6E4A2D', foam: 'dome' },
+  { liquid: '#3A2216', foam: 'cocoa' },
+  { liquid: '#5A3A22', foam: 'crema' },
+];
+
+function hash(text: string): number {
+  let h = 0;
+  for (let i = 0; i < text.length; i += 1) h = (h * 31 + text.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+export function artFor(product: Pick<Product, 'id' | 'category'>): DrinkArt {
+  const known = DRINK_ART[product.id];
+  if (known) return known;
+  const base = FALLBACK_ART[hash(product.id) % FALLBACK_ART.length];
+  return { ...base, tag: product.category?.trim() || 'New' };
+}
+
 export const MENU: Product[] = [
   {
     id: 'mocca',
@@ -17,6 +61,7 @@ export const MENU: Product[] = [
     nameThai: 'มอคค่า',
     price: 50,
     hasSweetness: true,
+    category: 'Choc',
     image:
       'https://www.everyday-delicious.com/wp-content/uploads/2021/05/caffee-mocha-kawa-mokka-everyday-delicious-1-1197x1800.jpg',
   },
@@ -26,6 +71,7 @@ export const MENU: Product[] = [
     nameThai: 'อเมริกาโน่',
     price: 50,
     hasSweetness: false,
+    category: 'Black',
     image: 'https://www.acouplecooks.com/wp-content/uploads/2022/01/Iced-Americano-008s.jpg',
   },
   {
@@ -34,6 +80,7 @@ export const MENU: Product[] = [
     nameThai: 'เอสเพรสโซ่',
     price: 50,
     hasSweetness: true,
+    category: 'Shot',
     image:
       'https://www.thespruceeats.com/thmb/HJrjMfXdLGHbgMhnM0fMkDx9XPQ=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/what-is-espresso-765702-hero-03_cropped-ffbc0c7cf45a46ff846843040c8f370c.jpg',
   },
@@ -43,6 +90,7 @@ export const MENU: Product[] = [
     nameThai: 'คาปูชิโน่',
     price: 50,
     hasSweetness: true,
+    category: 'Foam',
     image:
       'https://coffeeaffection.com/wp-content/uploads/2021/02/does-a-cappuccino-have-caffeine.jpg',
   },
@@ -52,6 +100,7 @@ export const MENU: Product[] = [
     nameThai: 'ลาเต้',
     price: 50,
     hasSweetness: true,
+    category: 'Milk',
     image:
       'https://coffeeaffection.com/wp-content/uploads/2021/05/Spanish-latte-milk-and-espresso.jpg',
   },
