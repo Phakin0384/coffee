@@ -56,6 +56,20 @@ ORDER_REQUIRED_FIELDS = {
 # --------------------------------------------------------------------------- #
 # Admin auth
 # --------------------------------------------------------------------------- #
+def _token_ok(supplied):
+    """Constant-time admin token check.
+
+    Compares bytes, not str: hmac.compare_digest raises TypeError on str
+    inputs holding non-ASCII characters, and header values are decoded as
+    latin-1, so any high byte in the header would otherwise crash the request.
+    """
+    if not ADMIN_TOKEN:
+        return False
+    return hmac.compare_digest(
+        supplied.encode("utf-8", "replace"), ADMIN_TOKEN.encode("utf-8")
+    )
+
+
 def require_admin(view):
     """Guard write endpoints with a constant-time check of the admin token."""
 
@@ -63,8 +77,7 @@ def require_admin(view):
     def wrapper(*args, **kwargs):
         if not ADMIN_TOKEN:
             return jsonify({"error": "Admin API is not configured (ADMIN_TOKEN unset)."}), 503
-        supplied = request.headers.get("X-Admin-Token", "")
-        if not hmac.compare_digest(supplied, ADMIN_TOKEN):
+        if not _token_ok(request.headers.get("X-Admin-Token", "")):
             return jsonify({"error": "Unauthorized."}), 401
         return view(*args, **kwargs)
 
@@ -233,13 +246,13 @@ def list_products():
     show_all = request.args.get("all") in ("1", "true", "yes")
     if show_all:
         # Listing hidden items is an admin action.
-        if not ADMIN_TOKEN or not hmac.compare_digest(
-            request.headers.get("X-Admin-Token", ""), ADMIN_TOKEN
-        ):
+        if not _token_ok(request.headers.get("X-Admin-Token", "")):
             return jsonify({"error": "Unauthorized."}), 401
         query = {}
     else:
-        query = {"available": True}
+        # Hidden means explicitly unavailable. Legacy docs written before the
+        # `available` flag existed must still appear on the menu.
+        query = {"available": {"$ne": False}}
     items = list(products.find(query).sort([("sortOrder", 1), ("name", 1)]))
     return jsonify(items), 200
 
@@ -253,8 +266,10 @@ def create_product():
         return jsonify({"error": error}), 400
     doc = _with_defaults(cleaned)
     # Use a caller-supplied id if given, else derive a slug from the name.
-    requested_id = (body or {}).get("id") or doc["name"]
-    doc["_id"] = _unique_slug(_slugify(requested_id))
+    requested_id = (body or {}).get("id")
+    if requested_id is not None and not isinstance(requested_id, str):
+        return jsonify({"error": "Field 'id' must be a string."}), 400
+    doc["_id"] = _unique_slug(_slugify(requested_id or doc["name"]))
     try:
         products.insert_one(doc)
     except pymongo.errors.PyMongoError:
@@ -308,21 +323,37 @@ def get_all_coffee():
     return jsonify(coffee), 200
 
 
+def _price_of(order):
+    """Price as a number. Legacy rows may store it as a string (or omit it);
+    one bad row must not take down the whole history page."""
+    price = order.get("price", 0)
+    if isinstance(price, bool):
+        return 0
+    if isinstance(price, (int, float)):
+        return price
+    try:
+        return float(price)
+    except (TypeError, ValueError):
+        return 0
+
+
 @app.route("/orders", methods=["GET"])
 @require_admin
 def list_orders():
     """Admin: customer purchase history, newest first, with a summary."""
     orders = list(collection.find().sort([("createdAt", -1), ("_id", -1)]))
-    revenue = sum(o.get("price", 0) for o in orders)
+    revenue = sum(_price_of(o) for o in orders)
     summary = {"count": len(orders), "revenue": revenue}
     return jsonify({"orders": orders, "summary": summary}), 200
 
 
 def _order_id_query(oid):
     """Match an order by id, tolerating both int (new) and string (legacy) ids."""
-    if oid.lstrip("-").isdigit():
+    try:
         return {"_id": {"$in": [oid, int(oid)]}}
-    return {"_id": oid}
+    except (TypeError, ValueError):
+        # Not numeric (e.g. a legacy ObjectId-ish string) — match as given.
+        return {"_id": oid}
 
 
 @app.route("/orders/<oid>", methods=["DELETE"])
@@ -332,6 +363,19 @@ def delete_order(oid):
     if result.deleted_count == 0:
         return jsonify({"error": "Order not found."}), 404
     return jsonify({"deleted": oid}), 200
+
+
+def _csv_safe(value):
+    """Neutralise spreadsheet formula injection.
+
+    A drink name like `=1+1` (or `@SUM(...)`) is executed as a formula when the
+    export is opened in Excel/Sheets. Prefixing with an apostrophe forces the
+    cell to be read as text.
+    """
+    text = "" if value is None else str(value)
+    if text[:1] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + text
+    return text
 
 
 @app.route("/orders.csv", methods=["GET"])
@@ -344,12 +388,12 @@ def export_orders_csv():
     for o in orders:
         writer.writerow(
             [
-                o.get("_id", ""),
-                o.get("name", ""),
-                o.get("temp", ""),
-                o.get("sweetness", ""),
-                o.get("price", ""),
-                o.get("createdAt", ""),
+                _csv_safe(o.get("_id", "")),
+                _csv_safe(o.get("name", "")),
+                _csv_safe(o.get("temp", "")),
+                _csv_safe(o.get("sweetness", "")),
+                _csv_safe(o.get("price", "")),
+                _csv_safe(o.get("createdAt", "")),
             ]
         )
     return Response(
