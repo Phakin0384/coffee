@@ -1,14 +1,18 @@
-{
+﻿{
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // Metro is a bundler, so resolve like one. This also replaces Expo 50's
+    // inherited moduleResolution:"node" (node10), which newer TypeScript
+    // reports as deprecated. Expo adopted the same setting in SDK 51.
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "allowJs": true,
     "checkJs": false,
     "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "ignoreDeprecations": "6.0"
+    "resolveJsonModule": true
   },
   "include": ["frontend/**/*.ts", "frontend/**/*.tsx"],
   "exclude": ["node_modules", "backend", "design", ".expo", "dist", "web-build"]
