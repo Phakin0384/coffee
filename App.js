@@ -3,6 +3,7 @@ import 'react-native-gesture-handler';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Home from './frontend/home';
 import Menu from './frontend/menu';
 import BuyScreen from './frontend/screens/BuyScreen';
@@ -40,11 +41,15 @@ function Navigation() {
   );
 }
 
+// SafeAreaProvider supplies the notch/home-indicator insets the screens pad
+// against, so one build sits correctly on a phone, a tablet and the kiosk.
 function App() {
   return (
-    <ThemeProvider>
-      <Navigation />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <Navigation />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 

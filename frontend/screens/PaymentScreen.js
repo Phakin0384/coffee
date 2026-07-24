@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getDrink, QR_IMAGE } from '../data/menu';
 import { cardRadius } from '../theme';
@@ -29,7 +30,8 @@ export default function PaymentScreen() {
   const route = useRoute();
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const insets = useSafeAreaInsets();
+  const wide = width - insets.left - insets.right >= 900;
 
   const { product, drinkId, price, temperature, sweetness, orderId } = route.params ?? {};
   const drink = product ?? getDrink(drinkId);
@@ -63,7 +65,16 @@ export default function PaymentScreen() {
         right={<Chip label="‹ Back" onPress={() => navigation.goBack()} />}
       />
 
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingLeft: styles.scroll.paddingHorizontal + insets.left,
+            paddingRight: styles.scroll.paddingHorizontal + insets.right,
+            paddingBottom: styles.scroll.paddingBottom + insets.bottom,
+          },
+        ]}
+      >
         <View style={[styles.pay, wide ? styles.payWide : styles.payStacked]}>
           <View style={styles.qrCol}>
             <View

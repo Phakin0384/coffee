@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getDrink, SWEETNESS_LEVELS, artFor } from '../data/menu';
 import { createOrder } from '../api/client';
@@ -28,9 +29,10 @@ export default function BuyScreen() {
   const route = useRoute();
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   // Side-by-side preview and controls once there is room; stacked below that.
-  const wide = width >= 900;
+  const wide = width - insets.left - insets.right >= 900;
 
   const drink = route.params?.product ?? getDrink(route.params?.drinkId);
 
@@ -95,7 +97,16 @@ export default function BuyScreen() {
         right={<Chip label="‹ Back" onPress={() => navigation.goBack()} />}
       />
 
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingLeft: styles.scroll.paddingHorizontal + insets.left,
+            paddingRight: styles.scroll.paddingHorizontal + insets.right,
+            paddingBottom: styles.scroll.paddingBottom + insets.bottom,
+          },
+        ]}
+      >
         <View style={[styles.cust, wide ? styles.custWide : styles.custStacked]}>
           {/* ---- Preview ---- */}
           <View

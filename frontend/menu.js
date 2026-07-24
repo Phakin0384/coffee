@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { getProducts } from './api/client';
 import { MENU as FALLBACK_MENU, artFor } from './data/menu';
@@ -38,12 +39,15 @@ export default function Menu() {
   const navigation = useNavigation();
   const { colors, toggle } = useTheme();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState('loading'); // loading | ready | error
 
-  const cols = columnsFor(width);
-  const cardW = Math.floor((width - PAD * 2 - GAP * (cols - 1)) / cols);
+  // Lay the grid out inside the safe area, not the raw screen width.
+  const usable = width - insets.left - insets.right;
+  const cols = columnsFor(usable);
+  const cardW = Math.floor((usable - PAD * 2 - GAP * (cols - 1)) / cols);
 
   const loadMenu = useCallback(async () => {
     setStatus('loading');
@@ -66,7 +70,9 @@ export default function Menu() {
     <LinearGradient colors={[colors.groundAlt, colors.ground]} style={styles.container}>
       <TopBar label="Menu" step={1} right={<Chip label="Theme" onPress={toggle} />} />
 
-      <View style={styles.head}>
+      <View
+        style={[styles.head, { paddingLeft: PAD + insets.left, paddingRight: PAD + insets.right }]}
+      >
         <View style={styles.headLeft}>
           <Text style={[styles.eyebrow, { color: colors.crema }]}>STEP 1 OF 3</Text>
           <Text style={[styles.title, { color: colors.ink }]}>Choose your coffee</Text>
@@ -82,7 +88,16 @@ export default function Menu() {
           </Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            {
+              paddingLeft: PAD + insets.left,
+              paddingRight: PAD + insets.right,
+              paddingBottom: styles.scroll.paddingBottom + insets.bottom,
+            },
+          ]}
+        >
           {status === 'error' && (
             <TouchableOpacity
               style={[styles.offline, { backgroundColor: colors.cremaSoft }]}
