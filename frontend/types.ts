@@ -10,6 +10,7 @@ export interface Product {
   price: number;
   hasSweetness: boolean;
   image: string;
+  category: string; // shown as the badge on a menu card
 }
 
 // The raw product shape returned by the backend GET /products.
@@ -20,6 +21,7 @@ export interface ProductDTO {
   price: number;
   hasSweetness?: boolean;
   image?: string;
+  category?: string;
   available?: boolean;
   sortOrder?: number;
 }

@@ -229,3 +229,82 @@ class TestOrderHistory:
         text = r.get_data(as_text=True)
         assert text.splitlines()[0] == "id,name,temp,sweetness,price,createdAt"
         assert "Latte" in text
+
+
+# --------------------------------------------------------------------------- #
+# Malformed input and legacy data must never produce a 500.
+# --------------------------------------------------------------------------- #
+class TestRobustness:
+    def test_non_ascii_admin_token_is_rejected_not_crashed(self, client):
+        # Header values decode as latin-1, so a high byte reaches compare_digest.
+        for probe in ("café", "ÿ" * 20, "test-admin-tokené"):
+            r = client.get("/products?all=1", headers={"X-Admin-Token": probe})
+            assert r.status_code == 401, probe
+            r = client.get("/orders", headers={"X-Admin-Token": probe})
+            assert r.status_code == 401, probe
+
+    def test_non_string_product_id_rejected(self, client):
+        r = client.post(
+            "/products",
+            json={"name": "Tea", "price": 40, "id": 123},
+            headers=ADMIN_HEADERS,
+        )
+        assert r.status_code == 400
+
+    def test_blank_product_id_falls_back_to_name(self, client):
+        r = client.post(
+            "/products",
+            json={"name": "Flat White", "price": 60, "id": ""},
+            headers=ADMIN_HEADERS,
+        )
+        assert r.status_code == 201 and r.get_json()["_id"] == "flat-white"
+
+    def test_malformed_order_id_is_404_not_500(self, client):
+        for oid in ("--5", "1.5", "abc", "1e5", "٣"):
+            assert client.delete(f"/orders/{oid}", headers=ADMIN_HEADERS).status_code == 404, oid
+
+    def test_legacy_string_id_order_deletable(self, client, app_module):
+        app_module.collection.insert_one({"_id": "legacy-abc", "name": "Old", "price": 50})
+        assert client.delete("/orders/legacy-abc", headers=ADMIN_HEADERS).status_code == 200
+
+    def test_legacy_non_numeric_price_does_not_break_history(self, client, app_module):
+        app_module.collection.insert_many(
+            [
+                {"_id": "l1", "name": "Old", "price": "50"},   # string price
+                {"_id": "l2", "name": "Older"},                # price missing
+                {"_id": "l3", "name": "Oldest", "price": None},
+            ]
+        )
+        client.post("/bill", json={"name": "New", "price": 10, "temp": "hot"})
+        r = client.get("/orders", headers=ADMIN_HEADERS)
+        assert r.status_code == 200
+        summary = r.get_json()["summary"]
+        assert summary["count"] == 4
+        assert summary["revenue"] == 60  # "50" coerced, missing/None treated as 0
+
+    def test_legacy_non_numeric_price_does_not_break_csv(self, client, app_module):
+        app_module.collection.insert_one({"_id": "l1", "name": "Old", "price": "50"})
+        assert client.get("/orders.csv", headers=ADMIN_HEADERS).status_code == 200
+
+    def test_csv_formula_injection_is_neutralised(self, client, app_module):
+        app_module.collection.insert_one({"_id": 1, "name": "=1+1", "price": 10})
+        row = client.get("/orders.csv", headers=ADMIN_HEADERS).get_data(
+            as_text=True
+        ).splitlines()[1]
+        assert "'=1+1" in row
+        assert not row.split(",")[1].startswith("=")
+
+    def test_legacy_product_without_available_still_on_menu(self, client, app_module):
+        # Docs written before the `available` flag existed must not vanish.
+        app_module.products.insert_one(
+            {"_id": "old-drink", "name": "Old Drink", "price": 45, "sortOrder": 5}
+        )
+        ids = [p["_id"] for p in client.get("/products").get_json()]
+        assert "old-drink" in ids
+
+    def test_explicitly_unavailable_product_still_hidden(self, client, app_module):
+        app_module.products.insert_one(
+            {"_id": "gone", "name": "Gone", "price": 45, "available": False}
+        )
+        ids = [p["_id"] for p in client.get("/products").get_json()]
+        assert "gone" not in ids
