@@ -6,7 +6,12 @@ import type { Product } from '../types';
 
 export const HOT_ICON = 'https://www.freeiconspng.com/uploads/black-flame-icon-png-24.png';
 export const COLD_ICON = 'https://static.thenounproject.com/png/1184671-200.png';
-export const QR_IMAGE = 'https://img5.pic.in.th/file/secure-sv1/S__30220303.jpeg';
+
+// PromptPay account the payment QR pays into. DEMO placeholder — swap for a real
+// PromptPay phone number or 13-digit national/tax id to accept real payments.
+// The QR itself is generated per-order (with the amount) from this, see
+// ./promptpay and screens/PaymentScreen.
+export const PROMPTPAY_ID = '0812345678';
 
 export const SWEETNESS_LEVELS: number[] = [25, 50, 75, 100];
 
