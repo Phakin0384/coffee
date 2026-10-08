@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   Pressable,
   ScrollView,
@@ -12,8 +11,11 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import QRCode from 'react-native-qrcode-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getDrink, QR_IMAGE } from '../data/menu';
+import { getDrink, PROMPTPAY_ID } from '../data/menu';
+import { promptPayPayload } from '../data/promptpay';
 import { cardRadius } from '../theme';
 import { useTheme } from '../ThemeContext';
 import { serif } from '../fonts';
@@ -29,11 +31,16 @@ export default function PaymentScreen() {
   const route = useRoute();
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const insets = useSafeAreaInsets();
+  const wide = width - insets.left - insets.right >= 900;
 
   const { product, drinkId, price, temperature, sweetness, orderId } = route.params ?? {};
   const drink = product ?? getDrink(drinkId);
   const amount = price ?? drink?.price ?? 0;
+
+  // A fresh, amount-encoded PromptPay QR for this exact order — the customer
+  // scans and the total is already filled in, no typing the price.
+  const qrPayload = promptPayPayload(PROMPTPAY_ID, amount);
 
   const [paid, setPaid] = useState(false);
 
@@ -63,13 +70,25 @@ export default function PaymentScreen() {
         right={<Chip label="‹ Back" onPress={() => navigation.goBack()} />}
       />
 
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingLeft: styles.scroll.paddingHorizontal + insets.left,
+            paddingRight: styles.scroll.paddingHorizontal + insets.right,
+            paddingBottom: styles.scroll.paddingBottom + insets.bottom,
+          },
+        ]}
+      >
         <View style={[styles.pay, wide ? styles.payWide : styles.payStacked]}>
           <View style={styles.qrCol}>
             <View
               style={[styles.qrCard, { backgroundColor: colors.ceramic, borderColor: colors.line }]}
             >
-              <Image source={{ uri: QR_IMAGE }} style={styles.qr} />
+              <View style={styles.qr}>
+                <QRCode value={qrPayload} size={210} backgroundColor="transparent" />
+              </View>
               <Text style={styles.qrCap}>พร้อมเพย์ · PROMPTPAY</Text>
             </View>
           </View>
@@ -201,10 +220,13 @@ function DoneScreen({ drink, orderId, onHome, colors }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  scrollView: { flex: 1 },
   scroll: { paddingHorizontal: 24, paddingBottom: 28, flexGrow: 1 },
 
-  pay: { flex: 1, gap: 26, alignItems: 'center' },
-  payWide: { flexDirection: 'row', justifyContent: 'center' },
+  // flex:1 only on the wide layout — on a phone the content must size to itself
+  // so the ScrollView can scroll to the pay button.
+  pay: { gap: 26, alignItems: 'center' },
+  payWide: { flexDirection: 'row', justifyContent: 'center', flex: 1 },
   payStacked: { flexDirection: 'column' },
 
   qrCol: { alignItems: 'center', justifyContent: 'center' },

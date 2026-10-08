@@ -3,6 +3,7 @@ import 'react-native-gesture-handler';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Home from './frontend/home';
 import Menu from './frontend/menu';
 import BuyScreen from './frontend/screens/BuyScreen';
@@ -30,7 +31,10 @@ function Navigation() {
       }}
     >
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* cardStyle flex:1 bounds each scene's height on web. Without it the
+          stack navigator's card grows to its content, so a screen's ScrollView
+          has no bounded parent and cannot scroll (react-native-web). */}
+      <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { flex: 1 } }}>
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Menu" component={Menu} />
         <Stack.Screen name="Buy" component={BuyScreen} />
@@ -40,11 +44,15 @@ function Navigation() {
   );
 }
 
+// SafeAreaProvider supplies the notch/home-indicator insets the screens pad
+// against, so one build sits correctly on a phone, a tablet and the kiosk.
 function App() {
   return (
-    <ThemeProvider>
-      <Navigation />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <Navigation />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 

@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getDrink, SWEETNESS_LEVELS, artFor } from '../data/menu';
 import { createOrder } from '../api/client';
@@ -28,9 +29,10 @@ export default function BuyScreen() {
   const route = useRoute();
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   // Side-by-side preview and controls once there is room; stacked below that.
-  const wide = width >= 900;
+  const wide = width - insets.left - insets.right >= 900;
 
   const drink = route.params?.product ?? getDrink(route.params?.drinkId);
 
@@ -95,7 +97,17 @@ export default function BuyScreen() {
         right={<Chip label="‹ Back" onPress={() => navigation.goBack()} />}
       />
 
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingLeft: styles.scroll.paddingHorizontal + insets.left,
+            paddingRight: styles.scroll.paddingHorizontal + insets.right,
+            paddingBottom: styles.scroll.paddingBottom + insets.bottom,
+          },
+        ]}
+      >
         <View style={[styles.cust, wide ? styles.custWide : styles.custStacked]}>
           {/* ---- Preview ---- */}
           <View
@@ -105,7 +117,10 @@ export default function BuyScreen() {
               { borderColor: colors.line },
             ]}
           >
-            <LinearGradient colors={[colors.card, colors.cardAlt]} style={styles.preview}>
+            <LinearGradient
+              colors={[colors.card, colors.cardAlt]}
+              style={[styles.preview, wide && styles.previewFill]}
+            >
               <View style={[styles.cupWrap, { width: previewArt, height: previewArt }]}>
                 <Cup art={artFor(drink)} size={previewArt} />
                 {/* Anchored to the rim, not the top of the drawing. */}
@@ -261,16 +276,22 @@ function Seg({ label, glyph, selected, onPress, tint, onTint }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centre: { alignItems: 'center', justifyContent: 'center' },
+  // Bounds the scroll area to the screen so overflow actually scrolls on web;
+  // without flex:1 here react-native-web grows it to content height and the
+  // page cannot scroll (the Expo root sets body overflow:hidden).
+  scrollView: { flex: 1 },
   scroll: {
     paddingHorizontal: 24,
     paddingBottom: 28,
     flexGrow: 1,
   },
   cust: {
-    flex: 1,
     gap: 22,
   },
-  custWide: { flexDirection: 'row', alignItems: 'stretch' },
+  // Only stretch to fill the screen on the wide kiosk layout, where the
+  // columns are meant to. On a phone the content must size to itself, or the
+  // ScrollView has nothing to scroll and the Confirm button falls off-screen.
+  custWide: { flexDirection: 'row', alignItems: 'stretch', flex: 1 },
   custStacked: { flexDirection: 'column' },
 
   previewOuter: {
@@ -279,13 +300,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   preview: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 26,
     paddingHorizontal: 18,
     gap: 4,
   },
+  // Fill the stretched column (and vertically centre the cup) only on the wide
+  // layout; on a phone it sizes to its content so the screen can scroll.
+  previewFill: { flex: 1 },
   previewWide: { flex: 0.9 },
   cupWrap: { alignItems: 'center', justifyContent: 'flex-end' },
   previewSteam: {

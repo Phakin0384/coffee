@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from './ThemeContext';
 import { serif } from './fonts';
@@ -25,6 +26,7 @@ const Home = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const compact = Math.min(width, height) < 520;
 
   const breathe = useRef(new Animated.Value(0.65)).current;
@@ -58,7 +60,18 @@ const Home = () => {
       onPress={() => navigation.navigate('Menu')}
       activeOpacity={0.94}
     >
-      <LinearGradient colors={[colors.groundAlt, colors.ground]} style={styles.container}>
+      <LinearGradient
+        colors={[colors.groundAlt, colors.ground]}
+        style={[
+          styles.container,
+          {
+            paddingTop: styles.container.padding + insets.top,
+            paddingBottom: styles.container.padding + insets.bottom,
+            paddingLeft: styles.container.padding + insets.left,
+            paddingRight: styles.container.padding + insets.right,
+          },
+        ]}
+      >
         {/* Soft crema halo behind the cup. */}
         <View
           style={[
@@ -93,18 +106,19 @@ const Home = () => {
         >
           CREMA
         </Text>
-        <Text style={[styles.kick, { color: colors.inkDim }]}>
-          Café-grade espresso from the machine. Brewed to your taste in under a minute.
-        </Text>
 
-        <Animated.View
-          style={[styles.startPill, { borderColor: colors.lineStrong, opacity: breathe }]}
-        >
-          <View style={[styles.dot, { backgroundColor: colors.crema }]} />
-          <Text style={[styles.startText, { color: colors.ink }]}>
-            แตะเพื่อเริ่ม · TOUCH TO START
-          </Text>
-        </Animated.View>
+        {/* Pinned to the bottom of the screen so it never crowds the wordmark,
+            however tall the cup and copy above end up. */}
+        <View style={[styles.startPillWrap, { bottom: insets.bottom + 28 }]} pointerEvents="none">
+          <Animated.View
+            style={[styles.startPill, { borderColor: colors.lineStrong, opacity: breathe }]}
+          >
+            <View style={[styles.dot, { backgroundColor: colors.crema }]} />
+            <Text style={[styles.startText, { color: colors.ink }]}>
+              แตะเพื่อเริ่ม · TOUCH TO START
+            </Text>
+          </Animated.View>
+        </View>
       </LinearGradient>
     </TouchableOpacity>
   );
@@ -150,11 +164,16 @@ const styles = StyleSheet.create({
     maxWidth: 380,
     lineHeight: 23,
   },
+  startPillWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
   startPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 26,
     borderWidth: 1,
     paddingHorizontal: 26,
     paddingVertical: 15,

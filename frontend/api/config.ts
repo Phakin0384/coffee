@@ -1,12 +1,8 @@
 import Constants from 'expo-constants';
+import { resolveApiBaseUrl } from './resolve';
 
-// Resolve the backend base URL. Resolution order:
-//   1. An explicit override in app.json -> expo.extra.apiUrl (use this in prod).
-//   2. In Expo dev, derive the LAN IP of the machine running Metro so a phone or
-//      emulator can reach the Flask server on port 5000 (localhost on a device
-//      points at the device itself, not your computer).
-//   3. Fall back to localhost (fine for web or same-machine testing).
-const BACKEND_PORT = 5000;
+// Platform wiring only — the resolution rules live in ./resolve.ts, which stays
+// importable from tests without pulling in native modules.
 
 // Older Expo runtimes expose the host in different places; describe them here
 // rather than reaching for `any`.
@@ -16,18 +12,18 @@ const runtime = Constants as unknown as {
   manifest2?: { extra?: { expoClient?: { hostUri?: string } } };
 };
 
-const EXPLICIT_URL = runtime.expoConfig?.extra?.apiUrl;
+// React Native defines a global `window`, but only a browser gives it a
+// `location`, so this doubles as the web check.
+const webLocation = typeof window !== 'undefined' && window.location ? window.location : undefined;
 
-function devHost(): string | null {
-  const hostUri =
+export const API_BASE_URL: string = resolveApiBaseUrl({
+  explicitUrl: runtime.expoConfig?.extra?.apiUrl,
+  hostUri:
     runtime.expoConfig?.hostUri ||
     runtime.expoGoConfig?.debuggerHost ||
-    runtime.manifest2?.extra?.expoClient?.hostUri;
-  if (!hostUri) return null;
-  return hostUri.split(':')[0];
-}
+    runtime.manifest2?.extra?.expoClient?.hostUri,
+  webHostname: webLocation?.hostname,
+  webProtocol: webLocation?.protocol,
+});
 
-const host = devHost();
-
-export const API_BASE_URL: string =
-  EXPLICIT_URL || (host ? `http://${host}:${BACKEND_PORT}` : `http://localhost:${BACKEND_PORT}`);
+export { resolveApiBaseUrl, hostFromUri, BACKEND_PORT } from './resolve';

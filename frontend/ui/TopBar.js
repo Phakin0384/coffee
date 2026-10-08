@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../ThemeContext';
 import { serif } from '../fonts';
 
@@ -41,8 +42,21 @@ export function StepDots({ step, total = 3 }) {
 
 export default function TopBar({ label, step, right }) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.bar}>
+    <View
+      style={[
+        styles.bar,
+        {
+          // Clear the status bar / notch, and the rounded corners a landscape
+          // phone puts either side of the screen.
+          paddingTop: styles.bar.paddingTop + insets.top,
+          paddingLeft: styles.bar.paddingHorizontal + insets.left,
+          paddingRight: styles.bar.paddingHorizontal + insets.right,
+        },
+      ]}
+    >
       <View style={styles.brand}>
         <Text style={[styles.brandName, { color: colors.ink }]}>CREMA</Text>
         {!!label && <Text style={[styles.brandLabel, { color: colors.crema }]}>{label}</Text>}
