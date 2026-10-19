@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -29,7 +29,7 @@ const Home = () => {
   const insets = useSafeAreaInsets();
   const compact = Math.min(width, height) < 520;
 
-  const breathe = useRef(new Animated.Value(0.65)).current;
+  const [breathe] = useState(() => new Animated.Value(0.65));
 
   useEffect(() => {
     const loop = Animated.loop(
