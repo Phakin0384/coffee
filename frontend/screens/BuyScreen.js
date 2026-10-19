@@ -66,8 +66,7 @@ export default function BuyScreen() {
   const handleConfirm = async () => {
     if (!canConfirm || submitting) return;
     const order = {
-      name: drink.name,
-      price: drink.price,
+      productId: drink.id,
       sweetness: needsSweetness ? sweetness : null,
       temperature,
     };
@@ -75,8 +74,14 @@ export default function BuyScreen() {
     setSubmitting(true);
     try {
       const created = await createOrder(order);
-      // Forward the id so the confirmation can show an order number.
-      navigation.navigate('Payment', { product: drink, ...order, orderId: created?._id });
+      // Charge what the server priced the order at, which may differ from a
+      // stale menu on screen. Forward the id for the confirmation's order number.
+      navigation.navigate('Payment', {
+        product: drink,
+        ...order,
+        price: created.price,
+        orderId: created._id,
+      });
     } catch (err) {
       const message =
         err.response?.data?.error ||

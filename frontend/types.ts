@@ -26,10 +26,21 @@ export interface ProductDTO {
   sortOrder?: number;
 }
 
-// What the Buy screen collects and sends to POST /bill.
+// What the Buy screen collects and sends to POST /bill. The server looks the
+// name and price up from the product, so the client never sends them.
 export interface OrderInput {
+  productId: string;
+  sweetness: number | null;
+  temperature: Temperature;
+}
+
+// The order POST /bill stores and returns, priced from the menu.
+export interface Order {
+  _id: number;
+  productId: string;
   name: string;
   price: number;
   sweetness: number | null;
-  temperature: Temperature;
+  temp: Temperature;
+  createdAt: string;
 }
