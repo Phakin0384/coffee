@@ -6,7 +6,6 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
-  Alert,
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -38,6 +37,9 @@ export default function BuyScreen() {
   const [sweetness, setSweetness] = useState(null);
   const [temperature, setTemperature] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  // Shown in the NOTE area rather than an Alert: Alert.alert is a no-op on
+  // react-native-web, so a refused order would otherwise just do nothing.
+  const [error, setError] = useState(null);
 
   if (!drink) {
     return (
@@ -70,6 +72,7 @@ export default function BuyScreen() {
       temperature,
     };
 
+    setError(null);
     setSubmitting(true);
     try {
       const created = await createOrder(order);
@@ -82,10 +85,10 @@ export default function BuyScreen() {
         orderId: created._id,
       });
     } catch (err) {
-      const message =
+      setError(
         err.response?.data?.error ||
-        'Could not place your order. Please check your connection and try again.';
-      Alert.alert('Order failed', message);
+          'Could not place your order. Please check your connection and try again.'
+      );
     } finally {
       setSubmitting(false);
     }
@@ -158,7 +161,10 @@ export default function BuyScreen() {
                       key={level}
                       label={`${level}%`}
                       selected={sweetness === level}
-                      onPress={() => setSweetness(level)}
+                      onPress={() => {
+                        setSweetness(level);
+                        setError(null);
+                      }}
                     />
                   ))}
                 </View>
@@ -178,7 +184,10 @@ export default function BuyScreen() {
                   selected={temperature === 'hot'}
                   tint={colors.hot}
                   onTint={colors.onHot}
-                  onPress={() => setTemperature('hot')}
+                  onPress={() => {
+                    setTemperature('hot');
+                    setError(null);
+                  }}
                 />
                 <Seg
                   glyph="❄"
@@ -186,7 +195,10 @@ export default function BuyScreen() {
                   selected={temperature === 'cold'}
                   tint={colors.cold}
                   onTint={colors.onCold}
-                  onPress={() => setTemperature('cold')}
+                  onPress={() => {
+                    setTemperature('cold');
+                    setError(null);
+                  }}
                 />
               </View>
             </View>
@@ -195,7 +207,13 @@ export default function BuyScreen() {
               <View style={styles.label}>
                 <Text style={[styles.labelText, { color: colors.inkDim }]}>NOTE</Text>
               </View>
-              <Text style={[styles.note, { color: colors.inkFaint }]}>{note}</Text>
+              {error ? (
+                <Text accessibilityRole="alert" style={[styles.note, { color: colors.hot }]}>
+                  สั่งไม่สำเร็จ · Order failed: {error}
+                </Text>
+              ) : (
+                <Text style={[styles.note, { color: colors.inkFaint }]}>{note}</Text>
+              )}
             </View>
 
             {/* ---- Action bar ---- */}
