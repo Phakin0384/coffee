@@ -438,3 +438,51 @@ class TestRobustness:
         )
         ids = [p["_id"] for p in client.get("/products").get_json()]
         assert "gone" not in ids
+
+    # Python's json accepts NaN/Infinity literals, but the kiosk's JSON.parse
+    # does not: one such price made the whole /products response unreadable.
+    def test_non_finite_numbers_rejected(self, client):
+        for field in ("price", "sortOrder"):
+            for lit in ("NaN", "Infinity", "-Infinity"):
+                r = client.patch(
+                    "/products/latte",
+                    data='{"%s": %s}' % (field, lit),
+                    headers={**ADMIN_HEADERS, "Content-Type": "application/json"},
+                )
+                assert r.status_code == 400, (field, lit)
+        r = client.post(
+            "/products",
+            data='{"name": "Inf", "price": Infinity}',
+            headers={**ADMIN_HEADERS, "Content-Type": "application/json"},
+        )
+        assert r.status_code == 400
+
+    def test_legacy_non_finite_string_price_not_sold(self, client, app_module):
+        for i, raw in enumerate(("inf", "nan", "1e999")):
+            app_module.products.insert_one(
+                {"_id": f"x{i}", "name": "X", "price": raw, "hasSweetness": False}
+            )
+            r = order(client, f"x{i}")
+            assert r.status_code == 400, raw
+
+    def test_database_down_is_a_json_503(self, client, app_module, monkeypatch):
+        def down(*a, **k):
+            raise app_module.pymongo.errors.ServerSelectionTimeoutError("down")
+
+        monkeypatch.setattr(app_module.products, "find", down)
+        r = client.get("/products")
+        assert r.status_code == 503 and r.is_json
+        assert "error" in r.get_json()
+
+        monkeypatch.setattr(app_module.counters, "find_one_and_update", down)
+        r = order(client, "americano")
+        assert r.status_code == 503 and r.is_json
+
+    def test_legacy_non_finite_order_price_does_not_break_history(self, client, app_module):
+        app_module.collection.insert_many(
+            [{"_id": "n1", "name": "A", "price": "nan"}, {"_id": "n2", "name": "B", "price": "inf"}]
+        )
+        r = client.get("/orders", headers=ADMIN_HEADERS)
+        assert r.status_code == 200
+        assert r.get_json()["summary"]["revenue"] == 0
+        assert "NaN" not in r.get_data(as_text=True) and "Infinity" not in r.get_data(as_text=True)

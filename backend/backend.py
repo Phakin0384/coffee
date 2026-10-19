@@ -1,6 +1,7 @@
 import csv
 import hmac
 import io
+import math
 import os
 import re
 from datetime import datetime, timezone
@@ -126,6 +127,12 @@ def _validate_order(data):
     }, None
 
 
+def _finite(value):
+    """A real, finite number. Excludes bools, and NaN/Infinity, which Python's
+    json accepts and emits but the kiosk's JSON.parse rejects outright."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
 def _menu_price(product):
     """A product's price as a non-negative number, or None if it has none.
 
@@ -142,7 +149,7 @@ def _menu_price(product):
             return None
         if price.is_integer():
             price = int(price)
-    if not isinstance(price, (int, float)) or price != price or price < 0:
+    if not _finite(price) or price < 0:
         return None
     return price
 
@@ -214,7 +221,7 @@ def _validate_product(data, partial=False):
     # price
     if want("price"):
         price = data["price"]
-        if not isinstance(price, (int, float)) or isinstance(price, bool) or price < 0:
+        if not _finite(price) or price < 0:
             return None, "Field 'price' must be a non-negative number."
         cleaned["price"] = price
     elif not partial:
@@ -248,7 +255,7 @@ def _validate_product(data, partial=False):
     # sortOrder
     if want("sortOrder"):
         so = data["sortOrder"]
-        if not isinstance(so, (int, float)) or isinstance(so, bool):
+        if not _finite(so):
             return None, "Field 'sortOrder' must be a number."
         cleaned["sortOrder"] = so
 
@@ -423,6 +430,15 @@ def delete_product(pid):
 # --------------------------------------------------------------------------- #
 # Misc routes
 # --------------------------------------------------------------------------- #
+@app.errorhandler(pymongo.errors.PyMongoError)
+def database_unavailable(error):
+    """Any database failure not handled where it happened (Atlas down, bad
+    credentials, network). Answer in JSON like every other error, so the
+    kiosk and the admin page can show it instead of choking on an HTML page."""
+    app.logger.exception("Database error", exc_info=error)
+    return jsonify({"error": "The database is unavailable. Please try again shortly."}), 503
+
+
 @app.route("/")
 def hello_world():
     return "<p>Coffee backend is running. Admin at <a href='/admin'>/admin</a>.</p>"
@@ -448,12 +464,12 @@ def _price_of(order):
     price = order.get("price", 0)
     if isinstance(price, bool):
         return 0
-    if isinstance(price, (int, float)):
-        return price
-    try:
-        return float(price)
-    except (TypeError, ValueError):
-        return 0
+    if not isinstance(price, (int, float)):
+        try:
+            price = float(price)
+        except (TypeError, ValueError):
+            return 0
+    return price if math.isfinite(price) else 0
 
 
 @app.route("/orders", methods=["GET"])

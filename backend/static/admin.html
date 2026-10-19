@@ -246,6 +246,9 @@
   var $ = function(id){ return document.getElementById(id); };
   function headers(){ return { "Content-Type":"application/json", "X-Admin-Token": TOKEN }; }
   function baht(n){ return "฿" + n; }
+  // Only an explicit false hides a drink: products saved before the flag
+  // existed are on the menu (see list_products in backend.py).
+  function onMenu(p){ return p.available !== false; }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 
@@ -317,7 +320,8 @@
 
   function render(){
     var rows = $("rows"); rows.innerHTML="";
-    products.sort(function(a,b){ return (a.sortOrder-b.sortOrder) || a.name.localeCompare(b.name); });
+    // Tolerate legacy rows with no sortOrder or name instead of failing the whole table.
+    products.sort(function(a,b){ return ((Number(a.sortOrder)||0)-(Number(b.sortOrder)||0)) || String(a.name||"").localeCompare(String(b.name||"")); });
     $("count").textContent = products.length + " product" + (products.length===1?"":"s");
     $("empty").style.display = products.length ? "none" : "block";
     products.forEach(function(p){
@@ -325,10 +329,10 @@
       tr.innerHTML =
         '<td><div class="thumb">'+cupSvg(p, 46)+'</div></td>'+
         '<td><strong>'+esc(p.name)+'</strong><div class="muted" style="font-size:.85rem">'+esc(p.nameThai||"")+' · '+esc(p._id)+'</div></td>'+
-        '<td class="num">'+baht(p.price)+'</td>'+
+        '<td class="num">'+esc(baht(p.price))+'</td>'+
         '<td>'+(p.hasSweetness?'<span class="pill">adjustable</span>':'<span class="pill">none</span>')+'</td>'+
-        '<td><button class="pill '+(p.available?'on':'off')+'" data-toggle="'+esc(p._id)+'">'+(p.available?'On menu':'Hidden')+'</button></td>'+
-        '<td class="num">'+p.sortOrder+'</td>'+
+        '<td><button class="pill '+(onMenu(p)?'on':'off')+'" data-toggle="'+esc(p._id)+'">'+(onMenu(p)?'On menu':'Hidden')+'</button></td>'+
+        '<td class="num">'+esc(p.sortOrder)+'</td>'+
         '<td class="actions">'+
           '<button class="btn small" data-edit="'+esc(p._id)+'">Edit</button>'+
           '<button class="btn small danger" data-del="'+esc(p._id)+'">Delete</button>'+
@@ -351,7 +355,7 @@
     $("f_foam").value = p && FOAM_SVG.hasOwnProperty(p.foam) ? p.foam : "art";
     $("f_smallCup").checked = p ? !!p.smallCup : false;
     $("f_hasSweetness").checked = p ? !!p.hasSweetness : true;
-    $("f_available").checked = p ? !!p.available : true;
+    $("f_available").checked = p ? onMenu(p) : true;
     updatePreview();
     $("overlay").classList.remove("hidden");
     $("f_name").focus();
@@ -397,9 +401,9 @@
   async function toggleAvailable(id){
     var p = products.find(function(x){ return x._id===id; }); if(!p) return;
     try{
-      var r = await fetch("/products/"+encodeURIComponent(id), { method:"PUT", headers:headers(), body:JSON.stringify({ available: !p.available }) });
+      var r = await fetch("/products/"+encodeURIComponent(id), { method:"PUT", headers:headers(), body:JSON.stringify({ available: !onMenu(p) }) });
       if(!r.ok){ toast("Update failed.", true); return; }
-      toast(!p.available ? "Shown on menu." : "Hidden from menu.");
+      toast(onMenu(p) ? "Hidden from menu." : "Shown on menu.");
       load();
     }catch(e){ toast("Could not reach the server.", true); }
   }
@@ -450,7 +454,7 @@
         '<td class="num">'+esc(o._id)+'</td>'+
         '<td><strong>'+esc(o.name)+'</strong></td>'+
         '<td class="muted">'+esc(opts.join(" · ") || "—")+'</td>'+
-        '<td class="num">'+baht(o.price)+'</td>'+
+        '<td class="num">'+esc(baht(o.price))+'</td>'+
         '<td>'+esc(fmtDate(o.createdAt))+'</td>'+
         '<td class="actions"><button class="btn small danger" data-delorder="'+esc(o._id)+'">Delete</button></td>';
       rows.appendChild(tr);
