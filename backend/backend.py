@@ -45,12 +45,8 @@ CORS(app, resources={r"/*": {"origins": origins}})
 # Valid temperature values.
 ALLOWED_TEMPS = {"hot", "cold"}
 
-# Fields required in a /bill request and the type each must be.
-ORDER_REQUIRED_FIELDS = {
-    "name": str,
-    "price": (int, float),
-    "temp": str,
-}
+# Sweetness levels the kiosk offers (frontend/data/menu.ts SWEETNESS_LEVELS).
+ALLOWED_SWEETNESS = {25, 50, 75, 100}
 
 
 # --------------------------------------------------------------------------- #
@@ -99,35 +95,86 @@ def _next_order_id():
 
 
 def _validate_order(data):
-    """Return (cleaned_dict, None) on success or (None, error_message)."""
+    """Check the shape of a /bill request.
+
+    Return (cleaned_dict, None) on success or (None, error_message). Only the
+    product id and the customer's choices are kept: any name or price the
+    client sends is ignored, since _price_order takes both from the menu.
+    """
     if not isinstance(data, dict):
         return None, "Request body must be a JSON object."
-    cleaned = {}
-    for field, expected_type in ORDER_REQUIRED_FIELDS.items():
-        if field not in data:
-            return None, f"Missing required field: '{field}'."
-        value = data[field]
-        if not isinstance(value, expected_type) or isinstance(value, bool):
-            return None, f"Field '{field}' has an invalid type."
-        cleaned[field] = value
-    if cleaned["price"] < 0:
-        return None, "Field 'price' must be non-negative."
-    cleaned["name"] = cleaned["name"].strip()
-    cleaned["temp"] = cleaned["temp"].strip().lower()
-    if not cleaned["name"]:
-        return None, "Field 'name' must not be empty."
-    if cleaned["temp"] not in ALLOWED_TEMPS:
+
+    product_id = data.get("productId")
+    if not isinstance(product_id, str) or not product_id.strip():
+        return None, "Field 'productId' must be a non-empty string."
+
+    temp = data.get("temp")
+    if not isinstance(temp, str) or temp.strip().lower() not in ALLOWED_TEMPS:
         return None, "Field 'temp' must be one of: hot, cold."
 
-    # Sweetness is optional (some drinks, e.g. Americano, have no sweetness).
+    # Sweetness is optional here; _price_order checks it against the drink.
     sweetness = data.get("sweetness")
     if sweetness is not None and (
         not isinstance(sweetness, (int, float)) or isinstance(sweetness, bool)
     ):
         return None, "Field 'sweetness' must be a number or null."
-    cleaned["sweetness"] = sweetness
 
-    return cleaned, None
+    return {
+        "productId": product_id.strip(),
+        "temp": temp.strip().lower(),
+        "sweetness": sweetness,
+    }, None
+
+
+def _menu_price(product):
+    """A product's price as a non-negative number, or None if it has none.
+
+    Legacy rows may hold a numeric string. Anything else (missing, junk, a
+    bool) means the drink cannot be sold; it must never fall back to free.
+    """
+    price = product.get("price")
+    if isinstance(price, bool):
+        return None
+    if isinstance(price, str):
+        try:
+            price = float(price)
+        except ValueError:
+            return None
+        if price.is_integer():
+            price = int(price)
+    if not isinstance(price, (int, float)) or price != price or price < 0:
+        return None
+    return price
+
+
+def _price_order(cleaned):
+    """Look the drink up on the menu and build the order fields from it.
+
+    Return (order_fields, None) or (None, error_message).
+    """
+    product = products.find_one({"_id": cleaned["productId"], "available": {"$ne": False}})
+    if product is None:
+        return None, "That drink is not on the menu."
+
+    price = _menu_price(product)
+    if price is None:
+        return None, "That drink cannot be ordered right now."
+
+    sweetness = cleaned["sweetness"]
+    # Missing hasSweetness means adjustable, as on the kiosk menu.
+    if product.get("hasSweetness", True) is not False:
+        if sweetness not in ALLOWED_SWEETNESS:
+            return None, "Field 'sweetness' must be one of: 25, 50, 75, 100."
+    elif sweetness is not None:
+        return None, "This drink has no sweetness option."
+
+    return {
+        "productId": product["_id"],
+        "name": product.get("name", product["_id"]),
+        "price": price,
+        "temp": cleaned["temp"],
+        "sweetness": sweetness,
+    }, None
 
 
 # --------------------------------------------------------------------------- #
@@ -409,10 +456,13 @@ def bill():
     cleaned, error = _validate_order(data)
     if error:
         return jsonify({"error": error}), 400
+    order, error = _price_order(cleaned)
+    if error:
+        return jsonify({"error": error}), 400
 
     new_coffee = {
         "_id": _next_order_id(),
-        **cleaned,
+        **order,
         "createdAt": datetime.now(timezone.utc).isoformat(),
     }
 

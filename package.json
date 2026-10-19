@@ -14,13 +14,13 @@
     "test": "jest"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~57.0.16",
+    "@expo/metro-runtime": "~57.0.17",
     "@react-native-community/masked-view": "^0.1.11",
     "@react-navigation/native": "^7.5.0",
     "@react-navigation/stack": "^7.12.0",
     "axios": "^1.6.8",
-    "expo": "^57.0.27",
-    "expo-dev-client": "^57.0.19",
+    "expo": "~57.0.30",
+    "expo-dev-client": "~57.0.20",
     "expo-linear-gradient": "~57.0.2",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
@@ -37,14 +37,14 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@types/react": "~18.2.45",
+    "@types/react": "~19.2.4",
     "babel-jest": "^29.7.0",
     "eslint": "^8.57.1",
-    "eslint-config-expo": "^7.1.2",
+    "eslint-config-expo": "~57.0.2",
     "eslint-config-prettier": "^9.1.2",
     "jest": "^29.7.0",
     "prettier": "^3.9.6",
-    "typescript": "~5.3.3"
+    "typescript": "~6.0.3"
   },
   "private": true
 }

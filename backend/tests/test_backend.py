@@ -8,46 +8,49 @@ from conftest import ADMIN_HEADERS
 class TestOrderValidation:
     def test_valid_order(self, app_module):
         cleaned, err = app_module._validate_order(
-            {"name": "Mocca", "price": 50, "temp": "hot", "sweetness": 75}
+            {"productId": "mocca", "temp": "hot", "sweetness": 75}
         )
         assert err is None
-        assert cleaned == {"name": "Mocca", "price": 50, "temp": "hot", "sweetness": 75}
+        assert cleaned == {"productId": "mocca", "temp": "hot", "sweetness": 75}
+
+    def test_client_name_and_price_are_dropped(self, app_module):
+        # Name and price come from the products collection, never the client.
+        cleaned, err = app_module._validate_order(
+            {"productId": "mocca", "temp": "hot", "name": "Free", "price": 0}
+        )
+        assert err is None
+        assert "name" not in cleaned and "price" not in cleaned
 
     def test_sweetness_optional(self, app_module):
-        cleaned, err = app_module._validate_order(
-            {"name": "Americano", "price": 50, "temp": "cold"}
-        )
+        cleaned, err = app_module._validate_order({"productId": "americano", "temp": "cold"})
         assert err is None
         assert cleaned["sweetness"] is None
 
     def test_temp_normalized_and_checked(self, app_module):
-        cleaned, err = app_module._validate_order(
-            {"name": "Latte", "price": 50, "temp": "HOT"}
-        )
+        cleaned, err = app_module._validate_order({"productId": "latte", "temp": "HOT"})
         assert err is None and cleaned["temp"] == "hot"
 
-        _, err = app_module._validate_order(
-            {"name": "Latte", "price": 50, "temp": "warm"}
-        )
+        _, err = app_module._validate_order({"productId": "latte", "temp": "warm"})
         assert err is not None
 
-    def test_missing_field(self, app_module):
-        _, err = app_module._validate_order({"name": "X", "temp": "hot"})
-        assert "price" in err
+    def test_missing_product_id(self, app_module):
+        _, err = app_module._validate_order({"temp": "hot"})
+        assert "productId" in err
 
-    def test_negative_price(self, app_module):
-        _, err = app_module._validate_order({"name": "X", "price": -1, "temp": "hot"})
-        assert err is not None
+    def test_bad_product_id(self, app_module):
+        for pid in (123, "", "   ", None, True):
+            _, err = app_module._validate_order({"productId": pid, "temp": "hot"})
+            assert err is not None, pid
 
     def test_bad_sweetness_type(self, app_module):
         _, err = app_module._validate_order(
-            {"name": "X", "price": 50, "temp": "hot", "sweetness": "lots"}
+            {"productId": "mocca", "temp": "hot", "sweetness": "lots"}
         )
         assert err is not None
 
-    def test_bool_not_accepted_as_number(self, app_module):
+    def test_bool_not_accepted_as_sweetness(self, app_module):
         _, err = app_module._validate_order(
-            {"name": "X", "price": True, "temp": "hot"}
+            {"productId": "mocca", "temp": "hot", "sweetness": True}
         )
         assert err is not None
 
@@ -155,37 +158,91 @@ class TestProductRoutes:
 # --------------------------------------------------------------------------- #
 # Order routes
 # --------------------------------------------------------------------------- #
+SWEET_SEEDS = {"mocca", "espresso", "cappuccino", "latte"}
+
+
+def order(client, product_id="mocca", temp="hot", **extra):
+    """POST /bill for a product. Seeded sweet drinks default to 50%."""
+    body = {"productId": product_id, "temp": temp, **extra}
+    if "sweetness" not in body and product_id in SWEET_SEEDS:
+        body["sweetness"] = 50
+    return client.post("/bill", json=body)
+
+
 class TestOrderRoutes:
     def test_bill_valid(self, client):
-        r = client.post(
-            "/bill", json={"name": "Mocca", "price": 50, "temp": "hot", "sweetness": 75}
-        )
+        r = order(client, "mocca", sweetness=75)
         assert r.status_code == 201
         body = r.get_json()
         assert body["name"] == "Mocca" and isinstance(body["_id"], int)
+        assert body["productId"] == "mocca" and body["price"] == 50
+        assert body["sweetness"] == 75
         assert "createdAt" in body  # orders are timestamped for history
 
+    def test_client_cannot_set_price_or_name(self, client):
+        r = order(client, "mocca", name="Free coffee", price=0)
+        assert r.status_code == 201
+        body = r.get_json()
+        assert body["price"] == 50 and body["name"] == "Mocca"
+
+    def test_price_follows_the_menu(self, client):
+        client.patch("/products/latte", json={"price": 65}, headers=ADMIN_HEADERS)
+        assert order(client, "latte").get_json()["price"] == 65
+
+    def test_unknown_product_rejected(self, client):
+        assert order(client, "no-such-drink").status_code == 400
+
+    def test_hidden_product_rejected(self, client):
+        client.patch("/products/latte", json={"available": False}, headers=ADMIN_HEADERS)
+        assert order(client, "latte").status_code == 400
+
+    def test_sweet_drink_needs_a_valid_level(self, client):
+        assert client.post("/bill", json={"productId": "mocca", "temp": "hot"}).status_code == 400
+        assert order(client, "mocca", sweetness=30).status_code == 400
+        assert order(client, "mocca", sweetness=1000).status_code == 400
+
+    def test_unsweetened_drink_takes_no_sweetness(self, client):
+        assert order(client, "americano", sweetness=50).status_code == 400
+        r = order(client, "americano", sweetness=None)
+        assert r.status_code == 201 and r.get_json()["sweetness"] is None
+
+    def test_product_with_bad_stored_price_not_sold_free(self, client, app_module):
+        app_module.products.insert_many(
+            [
+                {"_id": "no-price", "name": "No Price", "hasSweetness": False},
+                {"_id": "junk-price", "name": "Junk", "price": "abc", "hasSweetness": False},
+                {"_id": "bool-price", "name": "Bool", "price": True, "hasSweetness": False},
+                {"_id": "neg-price", "name": "Neg", "price": -5, "hasSweetness": False},
+            ]
+        )
+        for pid in ("no-price", "junk-price", "bool-price", "neg-price"):
+            r = order(client, pid)
+            assert r.status_code == 400, pid
+            assert "cannot be ordered" in r.get_json()["error"], pid
+
+    def test_legacy_string_price_is_coerced(self, client, app_module):
+        app_module.products.insert_one(
+            {"_id": "old", "name": "Old", "price": "45", "hasSweetness": False}
+        )
+        r = order(client, "old")
+        assert r.status_code == 201 and r.get_json()["price"] == 45
+
     def test_bill_bad_temp(self, client):
-        r = client.post("/bill", json={"name": "Mocca", "price": 50, "temp": "warm"})
-        assert r.status_code == 400
+        assert order(client, "mocca", temp="warm").status_code == 400
 
     def test_bill_non_json(self, client):
         r = client.post("/bill", data="nope", content_type="text/plain")
         assert r.status_code == 400
 
     def test_order_ids_increment(self, client):
-        first = client.post(
-            "/bill", json={"name": "A", "price": 50, "temp": "hot"}
-        ).get_json()["_id"]
-        second = client.post(
-            "/bill", json={"name": "B", "price": 50, "temp": "cold"}
-        ).get_json()["_id"]
+        first = order(client, "mocca").get_json()["_id"]
+        second = order(client, "latte", temp="cold").get_json()["_id"]
         assert second == first + 1
 
     def test_coffee_requires_admin(self, client):
         # Order history is customer data — the legacy /coffee is no longer public.
         assert client.get("/coffee").status_code == 401
-        client.post("/bill", json={"name": "A", "price": 50, "temp": "hot"})
+        order(client)
         r = client.get("/coffee", headers=ADMIN_HEADERS)
         assert r.status_code == 200 and len(r.get_json()) == 1
 
@@ -195,8 +252,9 @@ class TestOrderHistory:
         assert client.get("/orders").status_code == 401
 
     def test_orders_shape_and_summary(self, client):
-        client.post("/bill", json={"name": "A", "price": 50, "temp": "hot"})
-        client.post("/bill", json={"name": "B", "price": 60, "temp": "cold"})
+        client.patch("/products/latte", json={"price": 60}, headers=ADMIN_HEADERS)
+        order(client, "mocca")
+        order(client, "latte", temp="cold")
         r = client.get("/orders", headers=ADMIN_HEADERS)
         assert r.status_code == 200
         body = r.get_json()
@@ -204,15 +262,13 @@ class TestOrderHistory:
         assert len(body["orders"]) == 2
 
     def test_orders_newest_first(self, client):
-        client.post("/bill", json={"name": "First", "price": 50, "temp": "hot"})
-        client.post("/bill", json={"name": "Second", "price": 50, "temp": "cold"})
+        order(client, "mocca")
+        order(client, "latte", temp="cold")
         orders = client.get("/orders", headers=ADMIN_HEADERS).get_json()["orders"]
-        assert orders[0]["name"] == "Second"  # most recent first
+        assert orders[0]["name"] == "Latte"  # most recent first
 
     def test_delete_order_requires_admin(self, client):
-        oid = client.post(
-            "/bill", json={"name": "A", "price": 50, "temp": "hot"}
-        ).get_json()["_id"]
+        oid = order(client).get_json()["_id"]
         assert client.delete(f"/orders/{oid}").status_code == 401
         assert client.delete(f"/orders/{oid}", headers=ADMIN_HEADERS).status_code == 200
         assert client.get("/orders", headers=ADMIN_HEADERS).get_json()["summary"]["count"] == 0
@@ -221,7 +277,7 @@ class TestOrderHistory:
         assert client.delete("/orders/9999", headers=ADMIN_HEADERS).status_code == 404
 
     def test_csv_export(self, client):
-        client.post("/bill", json={"name": "Latte", "price": 55, "temp": "hot", "sweetness": 25})
+        order(client, "latte", sweetness=25)
         assert client.get("/orders.csv").status_code == 401
         r = client.get("/orders.csv", headers=ADMIN_HEADERS)
         assert r.status_code == 200
@@ -275,12 +331,12 @@ class TestRobustness:
                 {"_id": "l3", "name": "Oldest", "price": None},
             ]
         )
-        client.post("/bill", json={"name": "New", "price": 10, "temp": "hot"})
+        order(client, "mocca")  # price 50
         r = client.get("/orders", headers=ADMIN_HEADERS)
         assert r.status_code == 200
         summary = r.get_json()["summary"]
         assert summary["count"] == 4
-        assert summary["revenue"] == 60  # "50" coerced, missing/None treated as 0
+        assert summary["revenue"] == 100  # "50" coerced, missing/None treated as 0
 
     def test_legacy_non_numeric_price_does_not_break_csv(self, client, app_module):
         app_module.collection.insert_one({"_id": "l1", "name": "Old", "price": "50"})
