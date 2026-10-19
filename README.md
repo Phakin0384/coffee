@@ -84,8 +84,13 @@ menu. Hidden (unavailable) drinks stay off the kiosk but remain in the admin.
 | `POST`   | `/products`       | admin token | Create a product                     |
 | `PUT`    | `/products/<id>`  | admin token | Update a product                     |
 | `DELETE` | `/products/<id>`  | admin token | Delete a product                     |
-| `POST`   | `/bill`           | public      | Record an order                      |
-| `GET`    | `/coffee`         | public      | List recorded orders                 |
+| `POST`   | `/bill`           | public      | Record an order (see below)          |
+| `GET`    | `/coffee`         | admin token | List recorded orders                 |
+
+`/bill` takes `{ productId, temp, sweetness }`. The server reads the drink's
+name and price from `products` and rejects hidden or unknown drinks, so a
+client cannot set its own price. `sweetness` must be 25, 50, 75 or 100 for
+drinks that offer it and `null` for drinks that do not.
 
 Admin requests send the passcode in the `X-Admin-Token` header. If `ADMIN_TOKEN`
 is unset, all write endpoints are refused.
