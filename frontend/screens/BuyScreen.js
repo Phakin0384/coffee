@@ -216,50 +216,51 @@ export default function BuyScreen() {
               )}
             </View>
 
-            {/* ---- Action bar ---- */}
+            {/* ---- Action bar: the total, then the buttons beneath it ---- */}
             <View style={[styles.actionbar, { borderTopColor: colors.line }]}>
               <View>
                 <Text style={[styles.totalLabel, { color: colors.inkDim }]}>TOTAL</Text>
                 <Text style={[styles.totalValue, { color: colors.ink }]}>฿{drink.price}</Text>
               </View>
 
-              <View style={styles.grow} />
+              <View style={styles.buttons}>
+                <Pressable
+                  onPress={() => navigation.goBack()}
+                  style={({ pressed }) => [
+                    styles.btn,
+                    styles.btnGhost,
+                    { borderColor: colors.lineStrong, opacity: pressed ? 0.7 : 1 },
+                  ]}
+                >
+                  <Text style={[styles.btnGhostText, { color: colors.ink }]}>ยกเลิก</Text>
+                </Pressable>
 
-              <Pressable
-                onPress={() => navigation.goBack()}
-                style={({ pressed }) => [
-                  styles.btn,
-                  styles.btnGhost,
-                  { borderColor: colors.lineStrong, opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <Text style={[styles.btnGhostText, { color: colors.ink }]}>ยกเลิก</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={handleConfirm}
-                disabled={!canConfirm || submitting}
-                style={({ pressed }) => [
-                  styles.btn,
-                  {
-                    backgroundColor: canConfirm ? colors.crema : colors.lineStrong,
-                    opacity: pressed && canConfirm ? 0.88 : 1,
-                  },
-                ]}
-              >
-                {submitting ? (
-                  <ActivityIndicator color={colors.onCrema} />
-                ) : (
-                  <Text
-                    style={[
-                      styles.btnText,
-                      { color: canConfirm ? colors.onCrema : colors.inkFaint },
-                    ]}
-                  >
-                    ยืนยันคำสั่งซื้อ · Confirm ›
-                  </Text>
-                )}
-              </Pressable>
+                <Pressable
+                  onPress={handleConfirm}
+                  disabled={!canConfirm || submitting}
+                  style={({ pressed }) => [
+                    styles.btn,
+                    styles.btnConfirm,
+                    {
+                      backgroundColor: canConfirm ? colors.crema : colors.lineStrong,
+                      opacity: pressed && canConfirm ? 0.88 : 1,
+                    },
+                  ]}
+                >
+                  {submitting ? (
+                    <ActivityIndicator color={colors.onCrema} />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.btnText,
+                        { color: canConfirm ? colors.onCrema : colors.inkFaint },
+                      ]}
+                    >
+                      ยืนยันคำสั่งซื้อ · Confirm ›
+                    </Text>
+                  )}
+                </Pressable>
+              </View>
             </View>
           </View>
         </View>
@@ -373,15 +374,12 @@ const styles = StyleSheet.create({
   note: { fontSize: 14, lineHeight: 20 },
 
   actionbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    gap: 14,
     marginTop: 'auto',
     paddingTop: 18,
     borderTopWidth: 1,
-    flexWrap: 'wrap',
   },
-  grow: { flex: 1 },
+  buttons: { flexDirection: 'row', gap: 12 },
   totalLabel: { fontSize: 11, letterSpacing: 2, fontWeight: '600' },
   totalValue: { fontFamily: serif, fontSize: 26, fontWeight: '700' },
   btn: {
@@ -390,8 +388,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 110,
+    minWidth: 88,
   },
+  // Confirm takes the rest of the row: the bigger target is the likely tap.
+  btnConfirm: { flex: 1, paddingHorizontal: 12 },
   btnGhost: { borderWidth: 1, backgroundColor: 'transparent' },
   btnGhostText: { fontSize: 15 },
   btnText: { fontSize: 15, fontWeight: '700', letterSpacing: 0.4 },
