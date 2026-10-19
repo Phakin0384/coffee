@@ -32,6 +32,18 @@ function columnsFor(width) {
   return 2;
 }
 
+// Never rejects: an unreachable server or an empty menu yields the built-in
+// list, so the machine still works.
+async function loadMenu() {
+  try {
+    const products = await getProducts();
+    return { items: products.length ? products : FALLBACK_MENU, status: 'ready' };
+  } catch {
+    // Keep the machine usable offline rather than showing a dead screen.
+    return { items: FALLBACK_MENU, status: 'error' };
+  }
+}
+
 // The menu is loaded live from the backend so staff can add or hide drinks from
 // the admin page without shipping a new app build. If the server can't be
 // reached we fall back to the built-in list so the machine still works.
@@ -49,22 +61,27 @@ export default function Menu() {
   const cols = columnsFor(usable);
   const cardW = Math.floor((usable - PAD * 2 - GAP * (cols - 1)) / cols);
 
-  const loadMenu = useCallback(async () => {
-    setStatus('loading');
-    try {
-      const products = await getProducts();
-      setItems(products.length ? products : FALLBACK_MENU);
-      setStatus('ready');
-    } catch {
-      // Keep the machine usable offline rather than showing a dead screen.
-      setItems(FALLBACK_MENU);
-      setStatus('error');
-    }
+  const apply = useCallback((result) => {
+    setItems(result.items);
+    setStatus(result.status);
   }, []);
 
+  const retry = useCallback(() => {
+    setStatus('loading');
+    loadMenu().then(apply);
+  }, [apply]);
+
+  // State is only set once the request settles (status starts as 'loading'),
+  // and not at all if the screen has gone away by then.
   useEffect(() => {
-    loadMenu();
-  }, [loadMenu]);
+    let live = true;
+    loadMenu().then((result) => {
+      if (live) apply(result);
+    });
+    return () => {
+      live = false;
+    };
+  }, [apply]);
 
   return (
     <LinearGradient colors={[colors.groundAlt, colors.ground]} style={styles.container}>
@@ -102,7 +119,7 @@ export default function Menu() {
           {status === 'error' && (
             <TouchableOpacity
               style={[styles.offline, { backgroundColor: colors.cremaSoft }]}
-              onPress={loadMenu}
+              onPress={retry}
             >
               <Text style={[styles.offlineText, { color: colors.ink }]}>
                 ออฟไลน์ · Showing saved menu — tap to retry

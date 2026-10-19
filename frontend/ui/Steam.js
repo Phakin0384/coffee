@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
 import { useTheme } from '../ThemeContext';
 
@@ -8,7 +8,7 @@ import { useTheme } from '../ThemeContext';
 const USE_NATIVE_DRIVER = Platform.OS !== 'web';
 
 function Wisp({ delay, height, color }) {
-  const t = useRef(new Animated.Value(0)).current;
+  const [t] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const loop = Animated.loop(

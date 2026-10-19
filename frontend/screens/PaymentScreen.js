@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -148,7 +148,7 @@ export default function PaymentScreen() {
 }
 
 function Waiting({ colors }) {
-  const pulse = useRef(new Animated.Value(0.4)).current;
+  const [pulse] = useState(() => new Animated.Value(0.4));
 
   useEffect(() => {
     const loop = Animated.loop(
