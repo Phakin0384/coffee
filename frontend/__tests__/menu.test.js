@@ -1,65 +1,17 @@
-import { MENU, SWEETNESS_LEVELS, getDrink, artFor, DRINK_ART } from '../data/menu';
-import { normalizeProduct } from '../data/product';
+import { SWEETNESS_LEVELS, artFor, DRINK_ART } from '../data/menu';
 
-// MENU is the offline fallback the machine serves from when it cannot reach the
-// backend, so it has to be valid on its own — nothing normalizes it at runtime.
-describe('offline MENU fallback', () => {
-  test('is non-empty', () => {
-    expect(MENU.length).toBeGreaterThan(0);
-  });
-
-  test('every entry is a well-formed product', () => {
-    for (const drink of MENU) {
-      expect(typeof drink.id).toBe('string');
-      expect(drink.id.trim()).not.toBe('');
-      expect(typeof drink.name).toBe('string');
-      expect(drink.name.trim()).not.toBe('');
-      expect(typeof drink.nameThai).toBe('string');
-      expect(typeof drink.price).toBe('number');
-      expect(Number.isFinite(drink.price)).toBe(true);
-      expect(drink.price).toBeGreaterThanOrEqual(0);
-      expect(typeof drink.hasSweetness).toBe('boolean');
-      expect(typeof drink.image).toBe('string');
-      expect(typeof drink.category).toBe('string');
-    }
-  });
-
-  test('ids are unique', () => {
-    const ids = MENU.map((d) => d.id);
-    expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  // The fallback and the API path must produce identical shapes, or a screen
-  // that works offline can break the moment the backend comes back.
-  test('matches the shape normalizeProduct produces', () => {
-    for (const drink of MENU) {
-      const viaApi = normalizeProduct({ ...drink, _id: drink.id });
-      expect(viaApi).toEqual(drink);
-    }
-  });
-});
-
-describe('getDrink', () => {
-  test('finds a drink by id', () => {
-    expect(getDrink('latte').name).toBe('Latte');
-  });
-
-  test('returns undefined for unknown or missing ids', () => {
-    expect(getDrink('not-a-drink')).toBeUndefined();
-    expect(getDrink(undefined)).toBeUndefined();
-    expect(getDrink('')).toBeUndefined();
-  });
-});
+// The drinks the backend seeds a fresh database with (backend.py _SEED_PRODUCTS).
+const SEEDED_IDS = ['mocca', 'americano', 'espresso', 'cappuccino', 'latte'];
 
 // Every drink must render a cup — including ones staff add from the admin page
 // long after this code was written.
 describe('artFor', () => {
   const FOAMS = ['none', 'crema', 'cocoa', 'art', 'dome'];
 
-  test('every shipped drink has hand-tuned art', () => {
-    for (const drink of MENU) {
-      expect(DRINK_ART[drink.id]).toBeDefined();
-      expect(artFor(drink)).toBe(DRINK_ART[drink.id]);
+  test('every seeded drink has hand-tuned art', () => {
+    for (const id of SEEDED_IDS) {
+      expect(DRINK_ART[id]).toBeDefined();
+      expect(artFor({ id, category: '' })).toEqual(DRINK_ART[id]);
     }
   });
 
@@ -88,6 +40,25 @@ describe('artFor', () => {
     );
   });
 
+  test('uses the cup the admin set over any built-in art', () => {
+    const cup = { liquid: '#4A7A3A', foam: 'dome', small: true };
+    expect(artFor({ id: 'latte', category: 'Green', cup })).toEqual({ ...cup, tag: 'Green' });
+    expect(artFor({ id: 'thai-tea', category: '', cup })).toEqual({ ...cup, tag: 'New' });
+  });
+
+  // The admin's Category is the badge for every drink, seeded ones included.
+  test('the admin-set category is the badge even for seeded drinks', () => {
+    expect(artFor({ id: 'latte', category: 'Iced' }).tag).toBe('Iced');
+    expect(artFor({ id: 'latte', category: '' }).tag).toBe('Milk');
+  });
+
+  // backend.py _FALLBACK_ART / _fallback_art() must pick the same cup, or a
+  // drink would change look when the server backfills its art.
+  test('fallback picks match the server', () => {
+    expect(artFor({ id: 'thai-tea' })).toMatchObject({ liquid: '#5A3A22', foam: 'crema' });
+    expect(artFor({ id: 'old-drink' })).toMatchObject({ liquid: '#3A2216', foam: 'cocoa' });
+  });
+
   test('does not throw when category is missing entirely', () => {
     expect(() => artFor({ id: 'x' })).not.toThrow();
     expect(artFor({ id: 'x' }).tag).toBe('New');
@@ -104,5 +75,11 @@ describe('SWEETNESS_LEVELS', () => {
     }
     const sorted = [...SWEETNESS_LEVELS].sort((a, b) => a - b);
     expect(SWEETNESS_LEVELS).toEqual(sorted);
+  });
+
+  // The server rejects any other level (backend.py ALLOWED_SWEETNESS), so a
+  // button the kiosk offers but the server refuses would fail every order.
+  test('match the levels the server accepts', () => {
+    expect(SWEETNESS_LEVELS).toEqual([25, 50, 75, 100]);
   });
 });

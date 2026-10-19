@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getDrink, PROMPTPAY_ID } from '../data/menu';
+import { PROMPTPAY_ID } from '../data/menu';
 import { promptPayPayload } from '../data/promptpay';
 import { cardRadius } from '../theme';
 import { useTheme } from '../ThemeContext';
@@ -34,8 +34,7 @@ export default function PaymentScreen() {
   const insets = useSafeAreaInsets();
   const wide = width - insets.left - insets.right >= 900;
 
-  const { product, drinkId, price, temperature, sweetness, orderId } = route.params ?? {};
-  const drink = product ?? getDrink(drinkId);
+  const { product: drink, price, temperature, sweetness, orderId } = route.params ?? {};
   const amount = price ?? drink?.price ?? 0;
 
   // A fresh, amount-encoded PromptPay QR for this exact order — the customer

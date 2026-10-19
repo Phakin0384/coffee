@@ -9,12 +9,14 @@
     --ground:#F3ECE0; --panel:#FFFDF8; --line:#E4D8C4; --line-strong:#D3C2A6;
     --ink:#2A1C12; --dim:#6E5A47; --crema:#B4762A; --crema-ink:#8A5A1E;
     --danger:#B23A2E; --ok:#3E7A44; --shadow:rgba(41,27,17,.14);
+    --ceramic:#FBF4E7; --ceramic-rim:#E4D6BE; --cup-shadow:rgba(41,27,17,.16);
   }
   @media (prefers-color-scheme: dark){
     :root{
       --ground:#17100B; --panel:#251A13; --line:#3A2B1E;
       --line-strong:#4A3626; --ink:#F5ECDD; --dim:#C3B29C; --crema:#E0A85D; --crema-ink:#E0A85D;
       --danger:#E4796B; --ok:#7FB985; --shadow:rgba(0,0,0,.5);
+      --ceramic:#EFE3D0; --ceramic-rim:#CDBB9C; --cup-shadow:rgba(0,0,0,.45);
     }
   }
   *{box-sizing:border-box}
@@ -67,7 +69,7 @@
   th{font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--dim)}
   tbody tr:last-child td{border-bottom:none}
   td.num{font-variant-numeric:tabular-nums; text-align:right}
-  .thumb{width:46px; height:46px; border-radius:.4rem; object-fit:cover; background:var(--ground); border:1px solid var(--line)}
+  .thumb{display:block; width:46px; height:46px; border-radius:.4rem; background:var(--ground); border:1px solid var(--line)}
   .pill{font-size:.72rem; padding:.2rem .55rem; border-radius:999px; border:1px solid var(--line-strong); color:var(--dim)}
   .pill.on{color:var(--ok); border-color:var(--ok)}
   .pill.off{color:var(--danger); border-color:var(--danger)}
@@ -95,8 +97,11 @@
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
   .check{display:flex; align-items:center; gap:.5rem; margin:.2rem 0}
   .check input{width:auto}
-  .previewrow{display:flex; align-items:center; gap:1rem; margin-top:.4rem}
-  .previewrow img{width:64px; height:64px; border-radius:.5rem; object-fit:cover; border:1px solid var(--line); background:var(--ground)}
+  .cuprow{display:flex; align-items:flex-start; gap:1.2rem; margin-top:.2rem}
+  .cupprev{flex:none; width:112px; height:112px; border-radius:.7rem; border:1px solid var(--line); background:var(--ground)}
+  .cuprow .grid2{flex:1}
+  input[type=color]{width:100%; height:2.5rem; padding:.2rem; border:1px solid var(--line-strong); border-radius:.5rem; background:var(--panel)}
+  select{width:100%; padding:.6rem .7rem; border:1px solid var(--line-strong); border-radius:.5rem; background:var(--panel); color:var(--ink); font:inherit}
   .editor-actions{display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.4rem}
   .toast{position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%);
     background:var(--ink); color:var(--ground); padding:.7rem 1.1rem; border-radius:.6rem; z-index:40;
@@ -199,14 +204,26 @@
       <div class="row"><label for="f_price">Price (฿) *</label><input type="number" id="f_price" min="0" step="1" required /></div>
       <div class="row"><label for="f_sortOrder">Sort order</label><input type="number" id="f_sortOrder" step="1" /></div>
     </div>
-    <div class="row"><label for="f_image">Image URL</label><input type="text" id="f_image" placeholder="https://…" /></div>
-    <div class="previewrow">
-      <img id="f_preview" alt="" />
-      <div class="muted" style="font-size:.85rem">Paste an image URL to preview it here.</div>
+    <div class="cuprow">
+      <div class="cupprev" id="f_preview" aria-label="Cup preview"></div>
+      <div class="grid2">
+        <div class="row"><label for="f_cupColor">Coffee colour</label><input type="color" id="f_cupColor" value="#7C5838" /></div>
+        <div class="row"><label for="f_foam">Foam</label>
+          <select id="f_foam">
+            <option value="art">Latte art</option>
+            <option value="dome">Milk foam dome</option>
+            <option value="crema">Crema</option>
+            <option value="cocoa">Cocoa dusting</option>
+            <option value="none">None (black)</option>
+          </select>
+        </div>
+        <div class="row" style="grid-column:1 / -1"><label for="f_category">Badge</label><input type="text" id="f_category" maxlength="12" placeholder="e.g. Milk, Iced, New" /></div>
+      </div>
     </div>
     <div style="display:flex; gap:1.5rem; margin-top:.9rem">
       <label class="check"><input type="checkbox" id="f_hasSweetness" checked /> Has sweetness options</label>
       <label class="check"><input type="checkbox" id="f_available" checked /> Available on menu</label>
+      <label class="check"><input type="checkbox" id="f_smallCup" /> Small cup</label>
     </div>
     <div class="err-inline" id="editorErr"></div>
     <div class="editor-actions">
@@ -229,8 +246,40 @@
   var $ = function(id){ return document.getElementById(id); };
   function headers(){ return { "Content-Type":"application/json", "X-Admin-Token": TOKEN }; }
   function baht(n){ return "฿" + n; }
+  // Only an explicit false hides a drink: products saved before the flag
+  // existed are on the menu (see list_products in backend.py).
+  function onMenu(p){ return p.available !== false; }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  // The kiosk's cup (frontend/ui/Cup.js), drawn as an SVG string so the admin
+  // sees exactly what the menu will show. Keep the two in step.
+  var CUP_COLOR = /^#[0-9A-Fa-f]{6}$/;
+  var FOAM_SVG = {
+    dome: '<ellipse cx="100" cy="82" rx="50" ry="16" fill="#F3E7D0"/><ellipse cx="100" cy="80" rx="40" ry="10" fill="#FBF3E2"/>',
+    crema: '<ellipse cx="100" cy="90" rx="44" ry="8.5" fill="#B98544"/><ellipse cx="100" cy="89" rx="30" ry="5" fill="#CE9A57"/>',
+    cocoa: '<ellipse cx="100" cy="90" rx="45" ry="8.5" fill="#5A3A24"/><circle cx="86" cy="89" r="1.6" fill="#3A2416"/><circle cx="104" cy="90" r="1.6" fill="#3A2416"/><circle cx="114" cy="88" r="1.4" fill="#3A2416"/>',
+    art: '<ellipse cx="100" cy="90" rx="45" ry="8.5" fill="#C89A66"/><path d="M100 84 q10 4 0 12 q-10 -8 0 -12z" fill="#EFE0C6"/><path d="M100 96 l0 -2" stroke="#EFE0C6" stroke-width="1.4"/>',
+    none: ''
+  };
+  function cupSvg(p, size){
+    var liquid = CUP_COLOR.test(p.cupColor||"") ? p.cupColor : "#7C5838";
+    var foam = FOAM_SVG.hasOwnProperty(p.foam) ? p.foam : "art";
+    var s = p.smallCup ? 0.82 : 1;
+    var surface = foam === "none" ? '<ellipse cx="100" cy="90" rx="45" ry="8.5" fill="'+liquid+'"/>'
+      : foam === "dome" ? "" : '<ellipse cx="100" cy="91" rx="45" ry="8.5" fill="'+liquid+'"/>';
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 200 200" aria-hidden="true">'+
+      '<ellipse cx="100" cy="182" rx="'+(58*s)+'" ry="9" style="fill:var(--cup-shadow)" opacity="0.5"/>'+
+      '<g transform="translate(100 118) scale('+s+') translate(-100 -118)">'+
+        '<path d="M150 96 q36 2 36 28 t-36 28" fill="none" style="stroke:var(--ceramic)" stroke-width="11"/>'+
+        '<path d="M150 98 q26 2 26 24 t-26 24" fill="none" style="stroke:var(--ceramic-rim)" stroke-width="4"/>'+
+        '<path d="M48 92 h104 l-9 60 q-2.5 16 -19 16 h-48 q-16.5 0 -19 -16 z" style="fill:var(--ceramic)"/>'+
+        '<path d="M48 92 h104 l-1.4 9 h-101.2 z" style="fill:var(--ceramic-rim)"/>'+
+        '<ellipse cx="100" cy="92" rx="52" ry="12.5" style="fill:var(--ceramic-rim)"/>'+
+        '<ellipse cx="100" cy="92" rx="46" ry="9.5" fill="'+liquid+'"/>'+
+        surface + FOAM_SVG[foam] +
+      '</g></svg>';
+  }
 
   function toast(msg, isErr){
     var t=$("toast"); t.textContent=msg; t.className="toast show"+(isErr?" err":"");
@@ -271,18 +320,19 @@
 
   function render(){
     var rows = $("rows"); rows.innerHTML="";
-    products.sort(function(a,b){ return (a.sortOrder-b.sortOrder) || a.name.localeCompare(b.name); });
+    // Tolerate legacy rows with no sortOrder or name instead of failing the whole table.
+    products.sort(function(a,b){ return ((Number(a.sortOrder)||0)-(Number(b.sortOrder)||0)) || String(a.name||"").localeCompare(String(b.name||"")); });
     $("count").textContent = products.length + " product" + (products.length===1?"":"s");
     $("empty").style.display = products.length ? "none" : "block";
     products.forEach(function(p){
       var tr=document.createElement("tr");
       tr.innerHTML =
-        '<td><img class="thumb" src="'+esc(p.image)+'" alt="" onerror="this.style.visibility=\'hidden\'"></td>'+
+        '<td><div class="thumb">'+cupSvg(p, 46)+'</div></td>'+
         '<td><strong>'+esc(p.name)+'</strong><div class="muted" style="font-size:.85rem">'+esc(p.nameThai||"")+' · '+esc(p._id)+'</div></td>'+
-        '<td class="num">'+baht(p.price)+'</td>'+
+        '<td class="num">'+esc(baht(p.price))+'</td>'+
         '<td>'+(p.hasSweetness?'<span class="pill">adjustable</span>':'<span class="pill">none</span>')+'</td>'+
-        '<td><button class="pill '+(p.available?'on':'off')+'" data-toggle="'+esc(p._id)+'">'+(p.available?'On menu':'Hidden')+'</button></td>'+
-        '<td class="num">'+p.sortOrder+'</td>'+
+        '<td><button class="pill '+(onMenu(p)?'on':'off')+'" data-toggle="'+esc(p._id)+'">'+(onMenu(p)?'On menu':'Hidden')+'</button></td>'+
+        '<td class="num">'+esc(p.sortOrder)+'</td>'+
         '<td class="actions">'+
           '<button class="btn small" data-edit="'+esc(p._id)+'">Edit</button>'+
           '<button class="btn small danger" data-del="'+esc(p._id)+'">Delete</button>'+
@@ -300,17 +350,19 @@
     $("f_nameThai").value = p ? (p.nameThai||"") : "";
     $("f_price").value = p ? p.price : "";
     $("f_sortOrder").value = p ? p.sortOrder : "";
-    $("f_image").value = p ? (p.image||"") : "";
+    $("f_category").value = p ? (p.category||"") : "";
+    $("f_cupColor").value = p && CUP_COLOR.test(p.cupColor||"") ? p.cupColor : "#7C5838";
+    $("f_foam").value = p && FOAM_SVG.hasOwnProperty(p.foam) ? p.foam : "art";
+    $("f_smallCup").checked = p ? !!p.smallCup : false;
     $("f_hasSweetness").checked = p ? !!p.hasSweetness : true;
-    $("f_available").checked = p ? !!p.available : true;
+    $("f_available").checked = p ? onMenu(p) : true;
     updatePreview();
     $("overlay").classList.remove("hidden");
     $("f_name").focus();
   }
   function closeEditor(){ $("overlay").classList.add("hidden"); }
   function updatePreview(){
-    var url=$("f_image").value.trim(); var img=$("f_preview");
-    if(url){ img.src=url; img.style.visibility="visible"; } else { img.removeAttribute("src"); img.style.visibility="hidden"; }
+    $("f_preview").innerHTML = cupSvg({ cupColor: $("f_cupColor").value, foam: $("f_foam").value, smallCup: $("f_smallCup").checked }, 112);
   }
 
   async function save(e){
@@ -323,7 +375,10 @@
       name: $("f_name").value.trim(),
       nameThai: $("f_nameThai").value.trim(),
       price: price,
-      image: $("f_image").value.trim(),
+      category: $("f_category").value.trim(),
+      cupColor: $("f_cupColor").value.toUpperCase(),
+      foam: $("f_foam").value,
+      smallCup: $("f_smallCup").checked,
       hasSweetness: $("f_hasSweetness").checked,
       available: $("f_available").checked,
     };
@@ -346,9 +401,9 @@
   async function toggleAvailable(id){
     var p = products.find(function(x){ return x._id===id; }); if(!p) return;
     try{
-      var r = await fetch("/products/"+encodeURIComponent(id), { method:"PUT", headers:headers(), body:JSON.stringify({ available: !p.available }) });
+      var r = await fetch("/products/"+encodeURIComponent(id), { method:"PUT", headers:headers(), body:JSON.stringify({ available: !onMenu(p) }) });
       if(!r.ok){ toast("Update failed.", true); return; }
-      toast(!p.available ? "Shown on menu." : "Hidden from menu.");
+      toast(onMenu(p) ? "Hidden from menu." : "Shown on menu.");
       load();
     }catch(e){ toast("Could not reach the server.", true); }
   }
@@ -399,7 +454,7 @@
         '<td class="num">'+esc(o._id)+'</td>'+
         '<td><strong>'+esc(o.name)+'</strong></td>'+
         '<td class="muted">'+esc(opts.join(" · ") || "—")+'</td>'+
-        '<td class="num">'+baht(o.price)+'</td>'+
+        '<td class="num">'+esc(baht(o.price))+'</td>'+
         '<td>'+esc(fmtDate(o.createdAt))+'</td>'+
         '<td class="actions"><button class="btn small danger" data-delorder="'+esc(o._id)+'">Delete</button></td>';
       rows.appendChild(tr);
@@ -451,7 +506,9 @@
   $("addBtn").addEventListener("click", function(){ openEditor(null); });
   $("cancelBtn").addEventListener("click", closeEditor);
   $("editor").addEventListener("submit", save);
-  $("f_image").addEventListener("input", updatePreview);
+  $("f_cupColor").addEventListener("input", updatePreview);
+  $("f_foam").addEventListener("change", updatePreview);
+  $("f_smallCup").addEventListener("change", updatePreview);
   $("overlay").addEventListener("click", function(e){ if(e.target===$("overlay")) closeEditor(); });
   document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeEditor(); });
   $("rows").addEventListener("click", function(e){

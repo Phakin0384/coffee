@@ -12,7 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getDrink, SWEETNESS_LEVELS, artFor } from '../data/menu';
+import { SWEETNESS_LEVELS, artFor } from '../data/menu';
 import { createOrder } from '../api/client';
 import { cardRadius } from '../theme';
 import { useTheme } from '../ThemeContext';
@@ -22,8 +22,7 @@ import Steam from '../ui/Steam';
 import Cup, { RIM_FROM_BOTTOM } from '../ui/Cup';
 
 // One screen for every drink. The chosen product is passed from the menu as a
-// route param (it comes from the live /products API); we fall back to the
-// static lookup if only a legacy drinkId was passed.
+// route param (it comes from the live /products API).
 export default function BuyScreen() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -34,7 +33,7 @@ export default function BuyScreen() {
   // Side-by-side preview and controls once there is room; stacked below that.
   const wide = width - insets.left - insets.right >= 900;
 
-  const drink = route.params?.product ?? getDrink(route.params?.drinkId);
+  const drink = route.params?.product;
 
   const [sweetness, setSweetness] = useState(null);
   const [temperature, setTemperature] = useState(null);
