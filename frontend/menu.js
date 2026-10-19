@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { getProducts } from './api/client';
-import { MENU as FALLBACK_MENU, artFor } from './data/menu';
+import { artFor } from './data/menu';
 import { cardRadius, radius } from './theme';
 import { useTheme } from './ThemeContext';
 import { serif } from './fonts';
@@ -32,21 +32,18 @@ function columnsFor(width) {
   return 2;
 }
 
-// Never rejects: an unreachable server or an empty menu yields the built-in
-// list, so the machine still works.
+// Never rejects. There is no built-in menu to fall back on: the server prices
+// every order, so drinks shown while it is unreachable could not be bought.
 async function loadMenu() {
   try {
-    const products = await getProducts();
-    return { items: products.length ? products : FALLBACK_MENU, status: 'ready' };
+    return { items: await getProducts(), status: 'ready' };
   } catch {
-    // Keep the machine usable offline rather than showing a dead screen.
-    return { items: FALLBACK_MENU, status: 'error' };
+    return { items: [], status: 'error' };
   }
 }
 
 // The menu is loaded live from the backend so staff can add or hide drinks from
-// the admin page without shipping a new app build. If the server can't be
-// reached we fall back to the built-in list so the machine still works.
+// the admin page without shipping a new app build.
 export default function Menu() {
   const navigation = useNavigation();
   const { colors, toggle } = useTheme();
@@ -122,9 +119,15 @@ export default function Menu() {
               onPress={retry}
             >
               <Text style={[styles.offlineText, { color: colors.ink }]}>
-                ออฟไลน์ · Showing saved menu — tap to retry
+                ออฟไลน์ · Can&apos;t load the menu — tap to retry
               </Text>
             </TouchableOpacity>
+          )}
+
+          {status === 'ready' && items.length === 0 && (
+            <Text style={[styles.hint, styles.empty, { color: colors.inkDim }]}>
+              ยังไม่มีเมนู · No drinks available right now.
+            </Text>
           )}
 
           <View style={styles.grid}>
@@ -229,6 +232,10 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 14,
+  },
+  empty: {
+    textAlign: 'center',
+    paddingVertical: 40,
   },
   scroll: {
     paddingHorizontal: PAD,

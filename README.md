@@ -16,7 +16,7 @@ frontend/
   home.js, menu.js     Home + menu screens
   screens/             BuyScreen, PaymentScreen (one each, data-driven)
   api/                 config.ts (base URL), client.ts (axios + calls)
-  data/                menu.ts (offline fallback), product.ts (pure mappers)
+  data/                menu.ts (kiosk settings, cup art), product.ts (pure mappers)
   types.ts             Shared TypeScript types
   theme.ts             Colors / radius
   __tests__/           Jest unit tests
