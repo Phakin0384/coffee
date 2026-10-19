@@ -156,6 +156,80 @@ class TestProductRoutes:
 
 
 # --------------------------------------------------------------------------- #
+# Cup art (the drawn cup the kiosk shows for each product)
+# --------------------------------------------------------------------------- #
+class TestCupArt:
+    def get(self, client, pid):
+        items = client.get("/products?all=1", headers=ADMIN_HEADERS).get_json()
+        return next(p for p in items if p["_id"] == pid)
+
+    def test_seeded_drinks_keep_their_original_look(self, client):
+        latte = self.get(client, "latte")
+        assert (latte["cupColor"], latte["foam"], latte["smallCup"]) == ("#7C5838", "art", False)
+        assert latte["category"] == "Milk"
+        espresso = self.get(client, "espresso")
+        assert (espresso["foam"], espresso["smallCup"]) == ("crema", True)
+
+    def test_new_product_gets_the_same_fallback_the_app_picks(self, client):
+        # frontend/data/menu.ts artFor() hashes the id to pick from FALLBACK_ART;
+        # "thai-tea" lands on index 3 there (checked with node).
+        r = client.post("/products", json={"name": "Thai Tea", "price": 55}, headers=ADMIN_HEADERS)
+        body = r.get_json()
+        assert (body["cupColor"], body["foam"], body["smallCup"]) == ("#5A3A22", "crema", False)
+
+    def test_create_with_art(self, client):
+        r = client.post(
+            "/products",
+            json={"name": "Matcha", "price": 60, "cupColor": "#4a7a3a", "foam": "dome", "smallCup": True},
+            headers=ADMIN_HEADERS,
+        )
+        assert r.status_code == 201
+        body = r.get_json()
+        assert (body["cupColor"], body["foam"], body["smallCup"]) == ("#4A7A3A", "dome", True)
+
+    def test_update_art(self, client):
+        r = client.patch(
+            "/products/latte", json={"cupColor": "#112233", "foam": "none"}, headers=ADMIN_HEADERS
+        )
+        assert r.status_code == 200
+        assert (r.get_json()["cupColor"], r.get_json()["foam"]) == ("#112233", "none")
+
+    def test_invalid_art_rejected(self, client):
+        for bad in (
+            {"cupColor": "red"},
+            {"cupColor": "#12345"},
+            {"cupColor": "#GGGGGG"},
+            {"cupColor": 123},
+            {"foam": "whipped"},
+            {"foam": None},
+            {"smallCup": "yes"},
+        ):
+            r = client.patch("/products/latte", json=bad, headers=ADMIN_HEADERS)
+            assert r.status_code == 400, bad
+
+    def test_backfill_fills_missing_art_only(self, client, app_module):
+        app_module.products.delete_many({})
+        app_module.products.insert_many(
+            [
+                # Seeded before cup art existed: gets its original look back.
+                {"_id": "latte", "name": "Latte", "price": 50, "category": ""},
+                # Admin-added before cup art existed: gets the app's fallback.
+                {"_id": "old-drink", "name": "Old", "price": 45},
+                # Already has art and a badge: left alone.
+                {"_id": "mocca", "name": "Mocca", "price": 50, "category": "Sweet",
+                 "cupColor": "#000000", "foam": "none", "smallCup": False},
+            ]
+        )
+        app_module.backfill_cup_art()
+        latte = self.get(client, "latte")
+        assert (latte["cupColor"], latte["foam"], latte["category"]) == ("#7C5838", "art", "Milk")
+        old = self.get(client, "old-drink")
+        assert (old["cupColor"], old["foam"], old["smallCup"]) == ("#3A2216", "cocoa", False)
+        mocca = self.get(client, "mocca")
+        assert (mocca["cupColor"], mocca["category"]) == ("#000000", "Sweet")
+
+
+# --------------------------------------------------------------------------- #
 # Order routes
 # --------------------------------------------------------------------------- #
 SWEET_SEEDS = {"mocca", "espresso", "cappuccino", "latte"}

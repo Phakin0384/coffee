@@ -1,4 +1,15 @@
-import type { Product, ProductDTO } from '../types';
+import type { CupArt, Foam, Product, ProductDTO } from '../types';
+
+const FOAMS: readonly string[] = ['none', 'crema', 'cocoa', 'art', 'dome'];
+
+// The admin-set cup, or null when it is missing or not drawable (the kiosk then
+// picks one itself, see artFor in ./menu).
+function normalizeCup(p: ProductDTO): CupArt | null {
+  const { cupColor, foam } = p;
+  if (typeof cupColor !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(cupColor)) return null;
+  if (typeof foam !== 'string' || !FOAMS.includes(foam)) return null;
+  return { liquid: cupColor, foam: foam as Foam, small: p.smallCup === true };
+}
 
 // Map a backend product document to the shape the screens use. Kept pure (no
 // network, no React) so it is trivial to unit-test.
@@ -35,6 +46,7 @@ export function normalizeProduct(p: ProductDTO): Product | null {
     hasSweetness: p.hasSweetness !== false,
     image: typeof p.image === 'string' ? p.image : '',
     category: typeof p.category === 'string' ? p.category : '',
+    cup: normalizeCup(p),
   };
 }
 

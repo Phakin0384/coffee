@@ -227,8 +227,19 @@ def _validate_product(data, partial=False):
                 return None, f"Field '{field}' must be a string."
             cleaned[field] = data[field].strip()
 
+    # cup art
+    if want("cupColor"):
+        color = data["cupColor"]
+        if not isinstance(color, str) or not CUP_COLOR_RE.match(color):
+            return None, "Field 'cupColor' must be a colour like #7C5838."
+        cleaned["cupColor"] = color.upper()
+    if want("foam"):
+        if data["foam"] not in FOAMS:
+            return None, "Field 'foam' must be one of: " + ", ".join(sorted(FOAMS)) + "."
+        cleaned["foam"] = data["foam"]
+
     # optional booleans
-    for field in ("hasSweetness", "available"):
+    for field in ("hasSweetness", "available", "smallCup"):
         if want(field):
             if not isinstance(data[field], bool):
                 return None, f"Field '{field}' must be true or false."
@@ -247,8 +258,34 @@ def _validate_product(data, partial=False):
     return cleaned, None
 
 
-def _with_defaults(cleaned):
+# --------------------------------------------------------------------------- #
+# Cup art: the kiosk draws each drink as a cup (frontend/ui/Cup.js) from a
+# liquid colour, a foam style and a size, all editable from the admin page.
+# --------------------------------------------------------------------------- #
+FOAMS = {"none", "crema", "cocoa", "art", "dome"}
+CUP_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
+
+# What a product without its own art looks like. Must match FALLBACK_ART and
+# hash() in frontend/data/menu.ts, so a backfilled drink keeps the cup the
+# kiosk was already drawing for it.
+_FALLBACK_ART = [
+    {"cupColor": "#7C5838", "foam": "art"},
+    {"cupColor": "#6E4A2D", "foam": "dome"},
+    {"cupColor": "#3A2216", "foam": "cocoa"},
+    {"cupColor": "#5A3A22", "foam": "crema"},
+]
+
+
+def _fallback_art(product_id):
+    h = 0
+    for ch in product_id:
+        h = (h * 31 + ord(ch)) & 0xFFFFFFFF
+    return {**_FALLBACK_ART[h % len(_FALLBACK_ART)], "smallCup": False}
+
+
+def _with_defaults(cleaned, product_id):
     """Fill defaults for a newly created product."""
+    art = _fallback_art(product_id)
     return {
         "name": cleaned["name"],
         "nameThai": cleaned.get("nameThai", ""),
@@ -258,6 +295,9 @@ def _with_defaults(cleaned):
         "category": cleaned.get("category", ""),
         "available": cleaned.get("available", True),
         "sortOrder": cleaned.get("sortOrder", 100),
+        "cupColor": cleaned.get("cupColor", art["cupColor"]),
+        "foam": cleaned.get("foam", art["foam"]),
+        "smallCup": cleaned.get("smallCup", art["smallCup"]),
     }
 
 
@@ -276,15 +316,46 @@ _SEED_PRODUCTS = [
 ]
 
 
+# The hand-tuned cups and badges of the seeded drinks (formerly DRINK_ART in
+# frontend/data/menu.ts).
+_SEED_ART = {
+    "mocca": {"cupColor": "#3A2216", "foam": "cocoa", "smallCup": False, "category": "Choc"},
+    "americano": {"cupColor": "#241610", "foam": "none", "smallCup": False, "category": "Black"},
+    "espresso": {"cupColor": "#2A160D", "foam": "crema", "smallCup": True, "category": "Shot"},
+    "cappuccino": {"cupColor": "#6E4A2D", "foam": "dome", "smallCup": False, "category": "Foam"},
+    "latte": {"cupColor": "#7C5838", "foam": "art", "smallCup": False, "category": "Milk"},
+}
+
+
 def seed_products_if_empty():
     """Populate the menu once, so a fresh database is not blank."""
     try:
         if products.estimated_document_count() == 0:
-            docs = [_with_defaults(p) | {"_id": p["_id"]} for p in _SEED_PRODUCTS]
+            docs = [
+                _with_defaults(p | _SEED_ART[p["_id"]], p["_id"]) | {"_id": p["_id"]}
+                for p in _SEED_PRODUCTS
+            ]
             products.insert_many(docs)
             app.logger.info("Seeded %d products.", len(docs))
     except pymongo.errors.PyMongoError:
         app.logger.exception("Product seeding failed")
+
+
+def backfill_cup_art():
+    """Give products saved before cup art existed the cup the kiosk was
+    already drawing for them, so the admin page can show and edit it.
+
+    Only fills what is missing: a colour or badge an admin has set is kept.
+    """
+    try:
+        for doc in products.find({"cupColor": {"$exists": False}}):
+            seed = _SEED_ART.get(doc["_id"]) if isinstance(doc["_id"], str) else None
+            art = dict(seed) if seed else _fallback_art(str(doc["_id"]))
+            if doc.get("category") and "category" in art:
+                del art["category"]
+            products.update_one({"_id": doc["_id"]}, {"$set": art})
+    except pymongo.errors.PyMongoError:
+        app.logger.exception("Cup art backfill failed")
 
 
 @app.route("/products", methods=["GET"])
@@ -311,12 +382,13 @@ def create_product():
     cleaned, error = _validate_product(body, partial=False)
     if error:
         return jsonify({"error": error}), 400
-    doc = _with_defaults(cleaned)
     # Use a caller-supplied id if given, else derive a slug from the name.
     requested_id = (body or {}).get("id")
     if requested_id is not None and not isinstance(requested_id, str):
         return jsonify({"error": "Field 'id' must be a string."}), 400
-    doc["_id"] = _unique_slug(_slugify(requested_id or doc["name"]))
+    product_id = _unique_slug(_slugify(requested_id or cleaned["name"]))
+    doc = _with_defaults(cleaned, product_id)
+    doc["_id"] = product_id
     try:
         products.insert_one(doc)
     except pymongo.errors.PyMongoError:
@@ -477,6 +549,7 @@ def bill():
 
 
 seed_products_if_empty()
+backfill_cup_art()
 
 
 if __name__ == "__main__":

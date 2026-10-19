@@ -1,4 +1,6 @@
-import type { Product } from '../types';
+import type { Foam, Product } from '../types';
+
+export type { Foam };
 
 // Kiosk settings and cup art. The drinks themselves, with their names and
 // prices, live only in the backend /products collection (managed from the
@@ -15,8 +17,6 @@ export const SWEETNESS_LEVELS: number[] = [25, 50, 75, 100];
 // ---------------------------------------------------------------------------
 // Cup illustration recipes
 // ---------------------------------------------------------------------------
-export type Foam = 'none' | 'crema' | 'cocoa' | 'art' | 'dome';
-
 export interface DrinkArt {
   liquid: string;
   foam: Foam;
@@ -24,7 +24,9 @@ export interface DrinkArt {
   small?: boolean;
 }
 
-// Hand-tuned for the drinks we ship with, matching the design concept.
+// Hand-tuned for the drinks we ship with, matching the design concept. The
+// server now stores these on each product (backend.py _SEED_ART) and the admin
+// can change them; this copy only covers a server that predates cup art.
 export const DRINK_ART: Record<string, DrinkArt> = {
   mocca: { liquid: '#3A2216', foam: 'cocoa', tag: 'Choc' },
   americano: { liquid: '#241610', foam: 'none', tag: 'Black' },
@@ -33,9 +35,9 @@ export const DRINK_ART: Record<string, DrinkArt> = {
   latte: { liquid: '#7C5838', foam: 'art', tag: 'Milk' },
 };
 
-// Anything staff add from the admin page still needs a cup. Pick one
-// deterministically from the drink's id so the same drink always looks the
-// same, and let the admin's `category` supply the badge when they set one.
+// A drink with no cup of its own still needs one. Pick one deterministically
+// from the drink's id so the same drink always looks the same. backend.py
+// _FALLBACK_ART / _fallback_art() must stay identical to this.
 const FALLBACK_ART: Omit<DrinkArt, 'tag'>[] = [
   { liquid: '#7C5838', foam: 'art' },
   { liquid: '#6E4A2D', foam: 'dome' },
@@ -49,9 +51,12 @@ function hash(text: string): number {
   return h;
 }
 
-export function artFor(product: Pick<Product, 'id' | 'category'>): DrinkArt {
+// The cup to draw for a product: the admin's choice when it has one, else the
+// built-in art. The admin's category is the badge whenever it is set.
+export function artFor(product: Pick<Product, 'id' | 'category' | 'cup'>): DrinkArt {
   const known = DRINK_ART[product.id];
-  if (known) return known;
-  const base = FALLBACK_ART[hash(product.id) % FALLBACK_ART.length];
-  return { ...base, tag: product.category?.trim() || 'New' };
+  const tag = product.category?.trim() || known?.tag || 'New';
+  if (product.cup) return { ...product.cup, tag };
+  if (known) return { ...known, tag };
+  return { ...FALLBACK_ART[hash(product.id) % FALLBACK_ART.length], tag };
 }

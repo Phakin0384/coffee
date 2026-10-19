@@ -11,7 +11,7 @@ describe('artFor', () => {
   test('every seeded drink has hand-tuned art', () => {
     for (const id of SEEDED_IDS) {
       expect(DRINK_ART[id]).toBeDefined();
-      expect(artFor({ id, category: '' })).toBe(DRINK_ART[id]);
+      expect(artFor({ id, category: '' })).toEqual(DRINK_ART[id]);
     }
   });
 
@@ -38,6 +38,25 @@ describe('artFor', () => {
     expect(artFor({ id: 'thai-tea', category: '' })).toEqual(
       artFor({ id: 'thai-tea', category: '' })
     );
+  });
+
+  test('uses the cup the admin set over any built-in art', () => {
+    const cup = { liquid: '#4A7A3A', foam: 'dome', small: true };
+    expect(artFor({ id: 'latte', category: 'Green', cup })).toEqual({ ...cup, tag: 'Green' });
+    expect(artFor({ id: 'thai-tea', category: '', cup })).toEqual({ ...cup, tag: 'New' });
+  });
+
+  // The admin's Category is the badge for every drink, seeded ones included.
+  test('the admin-set category is the badge even for seeded drinks', () => {
+    expect(artFor({ id: 'latte', category: 'Iced' }).tag).toBe('Iced');
+    expect(artFor({ id: 'latte', category: '' }).tag).toBe('Milk');
+  });
+
+  // backend.py _FALLBACK_ART / _fallback_art() must pick the same cup, or a
+  // drink would change look when the server backfills its art.
+  test('fallback picks match the server', () => {
+    expect(artFor({ id: 'thai-tea' })).toMatchObject({ liquid: '#5A3A22', foam: 'crema' });
+    expect(artFor({ id: 'old-drink' })).toMatchObject({ liquid: '#3A2216', foam: 'cocoa' });
   });
 
   test('does not throw when category is missing entirely', () => {

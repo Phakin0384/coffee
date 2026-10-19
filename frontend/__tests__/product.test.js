@@ -10,7 +10,35 @@ describe('normalizeProduct', () => {
       hasSweetness: true,
       image: '',
       category: '',
+      cup: null,
     });
+  });
+
+  test('reads the cup art the admin set', () => {
+    const p = normalizeProduct({
+      _id: 'matcha',
+      name: 'Matcha',
+      price: 60,
+      cupColor: '#4A7A3A',
+      foam: 'dome',
+      smallCup: true,
+    });
+    expect(p.cup).toEqual({ liquid: '#4A7A3A', foam: 'dome', small: true });
+  });
+
+  // Bad art must not break the card: the kiosk falls back to its own cup.
+  test('ignores cup art it cannot draw', () => {
+    const base = { _id: 'a', name: 'A', price: 1 };
+    for (const art of [
+      { cupColor: 'red', foam: 'art' },
+      { cupColor: '#12345', foam: 'art' },
+      { cupColor: '#7C5838', foam: 'whipped' },
+      { cupColor: '#7C5838' },
+      { foam: 'art' },
+    ]) {
+      expect(normalizeProduct({ ...base, ...art }).cup).toBeNull();
+    }
+    expect(normalizeProduct({ ...base, cupColor: '#7C5838', foam: 'art' }).cup.small).toBe(false);
   });
 
   test('keeps provided fields', () => {
