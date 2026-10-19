@@ -136,7 +136,7 @@
     </nav>
     <div style="display:flex; gap:.6rem; align-items:center">
       <button class="btn small" id="refresh">Refresh</button>
-      <button class="btn small" id="lock">Lock</button>
+      <button class="btn small" id="signOut">Sign out</button>
     </div>
   </header>
   <main>
@@ -306,13 +306,25 @@
       showApp();
     }catch(e){ $("gateErr").textContent="Cannot reach the server."; }
   }
-  function lock(){ sessionStorage.removeItem("adminToken"); TOKEN=""; $("token").value=""; showGate(""); }
+  var EXPIRED = "Session expired — sign in again.";
+  // Forget the passcode and wipe everything loaded with it, so the next person
+  // at this browser sees only the gate. The passcode is a shared secret, not a
+  // server session, so there is nothing to revoke server-side.
+  function signOut(msg){
+    sessionStorage.removeItem("adminToken"); TOKEN=""; $("token").value="";
+    closeEditor(); $("editor").reset(); updatePreview();
+    products=[]; orders=[];
+    $("rows").innerHTML=""; $("orderRows").innerHTML=""; $("count").textContent="";
+    ["stat-count","stat-revenue","stat-today"].forEach(function(id){ $(id).textContent="—"; });
+    setView("products");
+    showGate(msg);
+  }
 
   // ---- Data ----
   async function load(){
     try{
       var r = await fetch("/products?all=1", { headers: headers() });
-      if(r.status===401){ return showGate("Session expired — sign in again."); }
+      if(r.status===401){ return signOut(EXPIRED); }
       products = await r.json();
       render();
     }catch(e){ toast("Could not load products.", true); }
@@ -391,6 +403,7 @@
         ? await fetch("/products/"+encodeURIComponent(id), { method:"PUT", headers:headers(), body:JSON.stringify(payload) })
         : await fetch("/products", { method:"POST", headers:headers(), body:JSON.stringify(payload) });
       var body = await r.json();
+      if(r.status===401){ return signOut(EXPIRED); }
       if(!r.ok){ $("editorErr").textContent = body.error || ("Error "+r.status); return; }
       toast(id ? "Product updated." : "Product added.");
       closeEditor(); load();
@@ -402,6 +415,7 @@
     var p = products.find(function(x){ return x._id===id; }); if(!p) return;
     try{
       var r = await fetch("/products/"+encodeURIComponent(id), { method:"PUT", headers:headers(), body:JSON.stringify({ available: !onMenu(p) }) });
+      if(r.status===401){ return signOut(EXPIRED); }
       if(!r.ok){ toast("Update failed.", true); return; }
       toast(onMenu(p) ? "Hidden from menu." : "Shown on menu.");
       load();
@@ -413,6 +427,7 @@
     if(!confirm('Delete "'+(p?p.name:id)+'"? This cannot be undone.')) return;
     try{
       var r = await fetch("/products/"+encodeURIComponent(id), { method:"DELETE", headers:headers() });
+      if(r.status===401){ return signOut(EXPIRED); }
       if(!r.ok){ toast("Delete failed.", true); return; }
       toast("Product deleted.");
       load();
@@ -433,7 +448,7 @@
   async function loadOrders(){
     try{
       var r = await fetch("/orders", { headers: headers() });
-      if(r.status===401){ return showGate("Session expired — sign in again."); }
+      if(r.status===401){ return signOut(EXPIRED); }
       var data = await r.json();
       orders = data.orders || [];
       renderOrders(data.summary || { count: orders.length, revenue: 0 });
@@ -465,6 +480,7 @@
     if(!confirm('Delete order #'+id+'? This cannot be undone.')) return;
     try{
       var r = await fetch("/orders/"+encodeURIComponent(id), { method:"DELETE", headers:headers() });
+      if(r.status===401){ return signOut(EXPIRED); }
       if(!r.ok){ toast("Delete failed.", true); return; }
       toast("Order deleted.");
       loadOrders();
@@ -474,6 +490,7 @@
   async function exportCsv(){
     try{
       var r = await fetch("/orders.csv", { headers: headers() });
+      if(r.status===401){ return signOut(EXPIRED); }
       if(!r.ok){ toast("Export failed.", true); return; }
       var blob = await r.blob();
       var url = URL.createObjectURL(blob);
@@ -485,20 +502,23 @@
     }catch(e){ toast("Could not reach the server.", true); }
   }
 
-  function switchView(view){
+  function setView(view){
     currentView = view;
     $("view-products").classList.toggle("hidden", view !== "products");
     $("view-history").classList.toggle("hidden", view !== "history");
     document.querySelectorAll(".tab").forEach(function(t){
       t.classList.toggle("active", t.dataset.view === view);
     });
+  }
+  function switchView(view){
+    setView(view);
     if(view === "history") loadOrders(); else load();
   }
 
   // ---- Events ----
   $("unlock").addEventListener("click", unlock);
   $("token").addEventListener("keydown", function(e){ if(e.key==="Enter") unlock(); });
-  $("lock").addEventListener("click", lock);
+  $("signOut").addEventListener("click", function(){ signOut(""); });
   $("refresh").addEventListener("click", function(){ currentView === "history" ? loadOrders() : load(); });
   document.querySelectorAll(".tab").forEach(function(t){
     t.addEventListener("click", function(){ switchView(t.dataset.view); });
